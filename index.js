@@ -9,7 +9,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const { check, validationResult } = require("express-validator");
 const winston = require("winston");
-const { sendAdminVerificationEmail } = require("./utils");
+const { sendAdminVerificationEmail, determineOrganizationId } = require("./utils");
 
 const app = express();
 app.set("trust proxy", "loopback" || "linklocal");
@@ -1658,7 +1658,7 @@ app.post(
 				}
 
 				case "get_organization_id": {
-					const organizationId = getCurrentOrganizationId(req);
+					const organizationId = determineOrganizationId(req);
 					console.log("Organization ID", organizationId);
 					return jsonResponse(res, true, { organizationId });
 				}
