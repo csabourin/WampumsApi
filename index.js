@@ -9,7 +9,10 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const { check, validationResult } = require("express-validator");
 const winston = require("winston");
-const { sendAdminVerificationEmail, determineOrganizationId } = require("./utils");
+const {
+	sendAdminVerificationEmail,
+	determineOrganizationId,
+} = require("./utils");
 
 const app = express();
 app.set("trust proxy", "loopback" || "linklocal");
@@ -63,7 +66,7 @@ const tokenMiddleware = async (req, res, next) => {
 		"/verify-email",
 		"/request_reset",
 		"/reset_password",
-		"/get_organization_id",
+		"/api",
 		"/get_organization_settings",
 		"/get_news",
 	];
@@ -1658,9 +1661,40 @@ app.post(
 				}
 
 				case "get_organization_id": {
-					const organizationId = determineOrganizationId(req);
-					console.log("Organization ID", organizationId);
-					return jsonResponse(res, true, { organizationId });
+					const hostname = req.query.hostname;
+
+					if (!hostname) {
+						return jsonResponse(
+							res,
+							false,
+							null,
+							"Missing required parameter: hostname",
+						);
+					}
+
+					try {
+						// Use the hostname parameter from the request instead of req.hostname
+						const organizationId = await determineOrganizationId(hostname);
+
+						if (!organizationId) {
+							return jsonResponse(
+								res,
+								false,
+								null,
+								"No organization found for the provided hostname",
+							);
+						}
+
+						return jsonResponse(res, true, { organizationId });
+					} catch (error) {
+						console.error("Error determining organization ID:", error.message);
+						return jsonResponse(
+							res,
+							false,
+							null,
+							"Error determining organization ID",
+						);
+					}
 				}
 
 				case "create_organization": {
@@ -2547,9 +2581,25 @@ app.get(
 				}
 
 				case "get_organization_id": {
-					const organizationId = getCurrentOrganizationId(req);
-					console.log("official Organization ID", organizationId);
-					jsonResponse(res, true, { organizationId });
+					// Extract hostname from request
+					const hostname = req.hostname;
+					
+
+					// Query the database for the corresponding organization_id based on hostname match
+					try {
+						const result = determineOrganizationId(hostname);
+
+						if (result) {
+							const organizationId = result;
+							console.log("official Organization ID", organizationId);
+							jsonResponse(res, true, { organizationId });
+						} else {
+							jsonResponse(res, false, null, "No organization matches this domain");
+						}
+					} catch (error) {
+						console.error("Error fetching organization ID:", error);
+						jsonResponse(res, false, null, "An error occurred while fetching the organization ID");
+					}
 					break;
 				}
 
@@ -4228,12 +4278,10 @@ app.post("/register", async (req, res) => {
 			!dbAccountCreationPassword ||
 			accountCreationPassword !== dbAccountCreationPassword
 		) {
-			return res
-				.status(400)
-				.json({
-					success: false,
-					message: translate("invalid_account_creation_password"),
-				});
+			return res.status(400).json({
+				success: false,
+				message: translate("invalid_account_creation_password"),
+			});
 		}
 
 		// Check if the email already exists
@@ -4306,7 +4354,9 @@ app.get("/get_organization_id", async (req, res) => {
 		return res.json({ success: true, data: { organizationId } });
 	} catch (error) {
 		console.error("Error getting organization ID:", error);
-		return res.status(500).json({ success: false, message: "Error determining organization ID" });
+		return res
+			.status(500)
+			.json({ success: false, message: "Error determining organization ID" });
 	}
 });
 

@@ -197,6 +197,7 @@ async function determineOrganizationId(currentHost) {
 			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') LIMIT 1`,
 			[currentHost, currentHost]
 		);
+		console.log("Org ID",result);
 		return result.rows[0]?.organization_id;
 	} finally {
 		client.release();
