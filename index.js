@@ -4299,6 +4299,17 @@ app.post("/register", async (req, res) => {
 	}
 });
 
+// Dedicated endpoint for getting organization ID
+app.get("/get_organization_id", async (req, res) => {
+	try {
+		const organizationId = await determineOrganizationId(req.hostname);
+		return res.json({ success: true, data: { organizationId } });
+	} catch (error) {
+		console.error("Error getting organization ID:", error);
+		return res.status(500).json({ success: false, message: "Error determining organization ID" });
+	}
+});
+
 app.post("/login", async (req, res) => {
 	try {
 		const email = req.body.email ? req.body.email.toLowerCase() : "";
