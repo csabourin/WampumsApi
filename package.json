@@ -1,0 +1,32 @@
+{
+  "name": "scout-organization-app",
+  "version": "1.0.0",
+  "description": "A scout organization app for managing participants, events, and reports.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "express-session": "^1.18.1",
+    "express-unless": "^2.1.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^6.1.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.1",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "author": "Christian Sabourin",
+  "license": "ISC"
+}
