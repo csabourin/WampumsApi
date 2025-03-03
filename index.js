@@ -1661,40 +1661,25 @@ app.post(
 				}
 
 				case "get_organization_id": {
-					const hostname = req.query.hostname;
+					const hostname = req.query.hostname || req.hostname;
 
-					if (!hostname) {
-						return jsonResponse(
-							res,
-							false,
-							null,
-							"Missing required parameter: hostname",
-						);
-					}
 
+					// Query the database for the corresponding organization_id based on hostname match
 					try {
-						// Use the hostname parameter from the request instead of req.hostname
-						const organizationId = await determineOrganizationId(hostname);
+						const result = await determineOrganizationId(hostname);
 
-						if (!organizationId) {
-							return jsonResponse(
-								res,
-								false,
-								null,
-								"No organization found for the provided hostname",
-							);
+						if (result) {
+							const organizationId = result;
+							console.log("official Organization ID", organizationId);
+							jsonResponse(res, true, { organizationId });
+						} else {
+							jsonResponse(res, false, null, "No organization matches this domain");
 						}
-
-						return jsonResponse(res, true, { organizationId });
 					} catch (error) {
-						console.error("Error determining organization ID:", error.message);
-						return jsonResponse(
-							res,
-							false,
-							null,
-							"Error determining organization ID",
-						);
+						console.error("Error fetching organization ID:", error);
+						jsonResponse(res, false, null, "An error occurred while fetching the organization ID");
 					}
+					break;
 				}
 
 				case "create_organization": {

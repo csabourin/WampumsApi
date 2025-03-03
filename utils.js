@@ -1,64 +1,117 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const axios = require('axios');
 const { Pool } = require('pg');
-const session = require('express-session');
 const sendgrid = require('@sendgrid/mail');
+const winston = require('winston');
 
-const pool = new Pool(); // Configure your pool connection
-const apiKey = '71cdcaa0-c7c1-4947-90cc-a5316b0aa542'; // Your API key
+// Load environment variables
+const DB_URL = process.env.DB_URL;
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Initialize logger
+const logger = winston.createLogger({
+	level: NODE_ENV === 'production' ? 'info' : 'debug',
+	format: winston.format.combine(
+		winston.format.timestamp(),
+		winston.format.json()
+	),
+	transports: [
+		new winston.transports.File({ filename: 'error.log', level: 'error' }),
+		new winston.transports.File({ filename: 'combined.log' })
+	]
+});
+
+// Add console transport in non-production environments
+if (NODE_ENV !== 'production') {
+	logger.add(new winston.transports.Console({
+		format: winston.format.combine(
+			winston.format.colorize(),
+			winston.format.simple()
+		)
+	}))
+}
+
+// Validate critical environment variables
+if (!DB_URL) {
+	console.error('Missing required environment variable: DB_URL');
+}
+
+if (!JWT_SECRET) {
+	console.error('Missing required environment variable: JWT_SECRET_KEY');
+}
+
+// Configure database pool with proper error handling
+const pool = new Pool({
+	connectionString: DB_URL,
+	ssl: NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+	console.error('Unexpected error on idle client', err);
+	process.exit(-1);
+});
+
+// Set up translations (empty object by default, can be filled later)
 let translations = {};
 
-// Validate JWT Token
+/**
+ * Validate JWT Token
+ * @param {string} jwtToken - The JWT token to validate
+ * @returns {Promise<Object>} - The decoded user information
+ */
 async function validateJwtToken(jwtToken) {
 	try {
-		const decodedToken = jwt.verify(jwtToken, process.env.JWT_SECRET); // Replace with your secret
-		const userId = decodedToken.userId;
-		const userRole = decodedToken.userRole;
+		if (!jwtToken) {
+			throw new Error('No JWT token provided');
+		}
 
-		if (!userId || !userRole) {
+		const decodedToken = jwt.verify(jwtToken, JWT_SECRET);
+
+		if (!decodedToken.id) {
 			throw new Error('JWT token is missing user information');
 		}
 
-		const user = await getUserFromDatabase(userId); // Implement this to fetch the user from the DB
-		if (!user || user.role !== userRole) {
-			throw new Error('Invalid user or role mismatch');
-		}
-
-		return user;
+		return decodedToken;
 	} catch (error) {
-		throw new Error('Invalid JWT token');
+		throw new Error(`Invalid JWT token: ${error.message}`);
 	}
 }
 
-// Ensure Session Started
-function ensureSessionStarted(req, res, next) {
-	if (!req.session) {
-		req.session = {};
-	}
-	next();
-}
-
-// Translate
+/**
+ * Translates a key to the current language
+ * @param {string} key - The translation key
+ * @returns {string} - The translated text or the key itself if not found
+ */
 function translate(key) {
 	return translations[key] || key;
 }
 
-// Set Language
-function setLanguage(req) {
-	const lang = req.cookies.lang || 'fr';
+/**
+ * Sets the current language for translations
+ * @param {string} lang - The language code (e.g., 'fr', 'en')
+ */
+function setLanguage(lang = 'fr') {
 	loadTranslations(lang);
 }
 
-// User Has Access to Participant
+/**
+ * Checks if user has access to a participant
+ * @param {string} userId - The user ID
+ * @param {string} participantId - The participant ID
+ * @returns {Promise<boolean>} - Whether the user has access
+ */
 async function userHasAccessToParticipant(userId, participantId) {
 	const client = await pool.connect();
 	try {
-		// Check if the user is a guardian
+		// Check if the user is directly linked to the participant
 		let result = await client.query(
 			`SELECT 1 FROM user_participants WHERE user_id = $1 AND participant_id = $2`,
 			[userId, participantId]
 		);
+
 		if (result.rowCount > 0) {
 			return true;
 		}
@@ -72,12 +125,19 @@ async function userHasAccessToParticipant(userId, participantId) {
 		);
 
 		return result.rowCount > 0;
+	} catch (error) {
+		console.error('Error checking participant access:', error);
+		return false;
 	} finally {
 		client.release();
 	}
 }
 
-// Calculate Age
+/**
+ * Calculates age from date of birth
+ * @param {string|Date} dateOfBirth - The date of birth
+ * @returns {number} - The age in years
+ */
 function calculateAge(dateOfBirth) {
 	const dob = new Date(dateOfBirth);
 	const today = new Date();
@@ -90,22 +150,30 @@ function calculateAge(dateOfBirth) {
 	return age;
 }
 
-// Sanitize Input
+/**
+ * Sanitize user input to prevent injection attacks
+ * @param {string} input - The input to sanitize
+ * @returns {string} - The sanitized input
+ */
 function sanitizeInput(input) {
-	return input.replace(/<[^>]*>/g, '').trim();
+	if (typeof input !== 'string') return input;
+	return input
+		.replace(/<[^>]*>/g, '')
+		.trim();
 }
 
-// Check if User is Logged In
-function isLoggedIn(req) {
-	return !!req.session.user_id;
-}
-
-// Send Admin Verification Email
+/**
+ * Send verification email to admin(s) when a new animator registers
+ * @param {number} organizationId - The organization ID
+ * @param {string} animatorName - The animator's name
+ * @param {string} animatorEmail - The animator's email
+ * @returns {Promise<void>}
+ */
 async function sendAdminVerificationEmail(organizationId, animatorName, animatorEmail) {
 	const client = await pool.connect();
 	try {
 		// Fetch admin emails
-		let result = await client.query(
+		const result = await client.query(
 			`SELECT u.email FROM users u
 			 JOIN user_organizations uo ON u.id = uo.user_id
 			 WHERE uo.organization_id = $1 AND uo.role = 'admin'`,
@@ -119,132 +187,98 @@ async function sendAdminVerificationEmail(organizationId, animatorName, animator
 		}
 
 		// Fetch organization name
-		result = await client.query(
+		const orgResult = await client.query(
 			`SELECT setting_value->>'name' AS org_name
 			 FROM organization_settings
 			 WHERE organization_id = $1 AND setting_key = 'organization_info'`,
 			[organizationId]
 		);
-		const orgName = result.rows[0]?.org_name || 'Wampums.app';
+		const orgName = orgResult.rows[0]?.org_name || 'Wampums.app';
 
-		const subject = translate('new_animator_registration_subject').replace('{orgName}', orgName);
-		const message = translate('new_animator_registration_body')
-			.replace('{orgName}', orgName)
-			.replace('{animatorName}', animatorName)
-			.replace('{animatorEmail}', animatorEmail);
+		const subject = `New animator registration for ${orgName}`;
+		const message = `A new animator has registered for ${orgName}.\n\nName: ${animatorName}\nEmail: ${animatorEmail}\n\nPlease log in to approve or reject this registration.`;
 
-		for (const adminEmail of adminEmails) {
-			const success = await sendEmail(adminEmail, subject, message);
-			if (!success) {
-				console.error(`Failed to send admin verification email to: ${adminEmail}`);
+		// Send email to all admins
+		if (SENDGRID_API_KEY) {
+			sendgrid.setApiKey(SENDGRID_API_KEY);
+			for (const adminEmail of adminEmails) {
+				try {
+					await sendgrid.send({
+						to: adminEmail,
+						from: 'noreply@wampums.app',
+						subject,
+						text: message
+					});
+					console.log(`Admin verification email sent to ${adminEmail}`);
+				} catch (error) {
+					console.error(`Failed to send email to ${adminEmail}:`, error);
+				}
 			}
+		} else {
+			console.log('SendGrid API key not set, skipping email sending');
+			console.log(`Would send to: ${adminEmails.join(', ')}`);
+			console.log(`Subject: ${subject}`);
+			console.log(`Message: ${message}`);
 		}
+	} catch (error) {
+		console.error('Error sending admin verification email:', error);
 	} finally {
 		client.release();
 	}
 }
 
-// Send Email using SendGrid
-async function sendEmail(to, subject, message) {
-	sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
-	const email = {
-		to,
-		from: 'noreply@wampums.app',
-		subject,
-		text: message
-	};
-
-	try {
-		const response = await sendgrid.send(email);
-		return response[0].statusCode === 202;
-	} catch (error) {
-		console.error('Error sending email:', error);
-		return false;
-	}
-}
-
-// Load Translations
+/**
+ * Load translations for a given language
+ * @param {string} lang - The language code
+ */
 function loadTranslations(lang) {
 	try {
 		translations = require(`../lang/${lang}.json`);
 	} catch (e) {
-		// Fallback to French
-		translations = require('../lang/fr.json');
-	}
-}
-
-// Get JWT Payload
-function getJWTPayload(req) {
-	const authHeader = req.headers.authorization;
-	if (authHeader) {
-		const token = authHeader.split(' ')[1];
+		console.warn(`Could not load translations for language ${lang}, falling back to default`);
 		try {
-			const payload = jwt.decode(token);
-			return payload;
+			translations = require('../lang/fr.json');
 		} catch (e) {
-			console.error('Invalid JWT token');
+			console.error('Could not load default translations');
+			translations = {};
 		}
 	}
-	return null;
 }
 
-// Determine Organization ID
+/**
+ * Determine the organization ID based on the hostname
+ * @param {string} currentHost - The current hostname
+ * @returns {Promise<number|null>} - The organization ID or null if not found
+ */
 async function determineOrganizationId(currentHost) {
+	if (!currentHost) {
+		console.error('No hostname provided to determineOrganizationId');
+		return null;
+	}
+
 	const client = await pool.connect();
 	try {
 		const result = await client.query(
 			`SELECT organization_id FROM organization_domains 
-			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') LIMIT 1`,
+			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+			 LIMIT 1`,
 			[currentHost, currentHost]
 		);
-		console.log("Org ID",result);
-		return result.rows[0]?.organization_id;
+
+		return result.rows[0]?.organization_id || null;
+	} catch (error) {
+		console.error('Error determining organization ID:', error);
+		return null;
 	} finally {
 		client.release();
 	}
 }
 
-// Get Current Organization ID
-async function getCurrentOrganizationId(req) {
-	if (req.session.current_organization_id) {
-		return req.session.current_organization_id;
-	}
-
-	const currentHost = req.hostname;
-	const organizationId = await determineOrganizationId(currentHost);
-
-	if (organizationId) {
-		req.session.current_organization_id = organizationId;
-		return organizationId;
-	}
-
-	throw new Error('No organization found for the current host');
-}
-
-// Helper: Authenticate and Get Token
-async function authenticateAndGetToken(apiKey) {
-	try {
-		const response = await axios.post('https://wampums-api.replit.app/authenticate', { apiKey });
-		if (response.data.success && response.data.token) {
-			return response.data.token;
-		}
-		throw new Error('Failed to obtain JWT token');
-	} catch (error) {
-		console.error('Error fetching token:', error);
-		throw error;
-	}
-}
-
-// Initialize App
-function initializeApp(req, res, next) {
-	ensureSessionStarted(req, res, next);
-	setLanguage(req);
-	loadTranslations(req.cookies.lang || 'fr');
-	res.set('Cache-Control', 'public, max-age=3600');
-	next();
-}
-
-// To Boolean Conversion
+/**
+ * Convert value to boolean format for database
+ * @param {any} value - The value to convert
+ * @returns {string} - 't' for true, 'f' for false
+ */
 function toBool(value) {
 	if (typeof value === 'boolean') return value ? 't' : 'f';
 	if (typeof value === 'string') {
@@ -253,23 +287,3 @@ function toBool(value) {
 	}
 	return Number(value) ? 't' : 'f';
 }
-
-module.exports = {
-	validateJwtToken,
-	ensureSessionStarted,
-	translate,
-	setLanguage,
-	userHasAccessToParticipant,
-	calculateAge,
-	sanitizeInput,
-	isLoggedIn,
-	sendAdminVerificationEmail,
-	sendEmail,
-	loadTranslations,
-	getJWTPayload,
-	determineOrganizationId,
-	getCurrentOrganizationId,
-	authenticateAndGetToken,
-	initializeApp,
-	toBool
-};
