@@ -6,7 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
-const { getCurrentOrganizationId } = require('./utils');
+const { determineOrganizationId } = require('./utils');
 const logger = require('./config/logger');
 
 // Import middleware
@@ -73,7 +73,7 @@ app.use((req, res, next) => {
 // Set up organization ID middleware
 app.use(async (req, res, next) => {
   try {
-    const organizationId = await getCurrentOrganizationId(req.hostname);
+    const organizationId = await determineOrganizationId(req.hostname);
     req.organizationId = organizationId;
     next();
   } catch (error) {

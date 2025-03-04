@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const sendgrid = require('@sendgrid/mail');
 const winston = require('winston');
+const { jsonResponse } = require('./utils/responseFormatter');
 
 // Load environment variables
 const DB_URL = process.env.DB_URL;
@@ -287,3 +288,34 @@ function toBool(value) {
 	}
 	return Number(value) ? 't' : 'f';
 }
+
+exports.determineOrganizationId  = async (req, res) => {
+
+		try {
+			// Extract hostname from request
+			const hostname = req.query.hostname || req.hostname;
+
+			const client = await pool.connect();
+			try {
+				// Query the database for the organization ID based on hostname
+				const result = await client.query(
+					`SELECT organization_id FROM organization_domains 
+					 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+					 LIMIT 1`,
+					[hostname, hostname]
+				);
+
+				if (result.rows.length > 0) {
+					const organizationId = result.rows[0].organization_id;
+					return jsonResponse(res, true, { organizationId });
+				} else {
+					return jsonResponse(res, false, null, "No organization matches this domain");
+				}
+			} finally {
+				client.release();
+			}
+		} catch (error) {
+			logger.error(`Error fetching organization ID: ${error.message}`);
+			return jsonResponse(res, false, null, "Error determining organization ID");
+		}
+	};
