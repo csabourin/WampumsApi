@@ -1,83 +1,52 @@
 // config/logger.js
 const winston = require('winston');
-const path = require('path');
-const fs = require('fs');
 
-// Create logs directory if it doesn't exist
-const logDir = 'logs';
-if (!fs.existsSync(logDir)) {
-	fs.mkdirSync(logDir);
-}
+// Determine the environment
+const environment = process.env.NODE_ENV || 'development';
 
-// Define log format
-const logFormat = winston.format.combine(
-	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-	winston.format.errors({ stack: true }),
-	winston.format.splat(),
-	winston.format.json()
-);
-
-// Custom format for console output
-const consoleFormat = winston.format.combine(
-	winston.format.colorize(),
-	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-	winston.format.printf(
-		info => `${info.timestamp} ${info.level}: ${info.message}${info.stack ? '\n' + info.stack : ''}`
-	)
-);
-
-// Create the logger
+// Configure the logger
 const logger = winston.createLogger({
-	level: process.env.LOG_LEVEL || 'info',
-	format: logFormat,
-	defaultMeta: { service: 'api-service' },
+	level: environment === 'production' ? 'info' : 'debug',
+	format: winston.format.combine(
+		winston.format.timestamp({
+			format: 'YYYY-MM-DD HH:mm:ss'
+		}),
+		winston.format.errors({ stack: true }),
+		winston.format.splat(),
+		winston.format.json()
+	),
+	defaultMeta: { service: 'wampums-api' },
 	transports: [
 		// Write all logs with level 'error' and below to error.log
 		new winston.transports.File({ 
-			filename: path.join(logDir, 'error.log'), 
+			filename: 'logs/error.log', 
 			level: 'error',
 			maxsize: 5242880, // 5MB
 			maxFiles: 5,
 		}),
-
 		// Write all logs with level 'info' and below to combined.log
 		new winston.transports.File({ 
-			filename: path.join(logDir, 'combined.log'),
+			filename: 'logs/combined.log',
 			maxsize: 5242880, // 5MB
-			maxFiles: 5,
-		}),
-
-		// Console output for development
-		new winston.transports.Console({
-			format: consoleFormat,
-			level: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
-		}),
-	],
-	// Prevent winston from exiting on uncaught exceptions
-	exitOnError: false
+			maxFiles: 5, 
+		})
+	]
 });
 
-// Create a stream object for Morgan integration (HTTP request logging)
-logger.stream = {
-	write: (message) => {
-		// Remove trailing newline
-		logger.info(message.trim());
-	},
+// If we're not in production, log to the console as well
+if (environment !== 'production') {
+	logger.add(new winston.transports.Console({
+		format: winston.format.combine(
+			winston.format.colorize(),
+			winston.format.simple()
+		)
+	}));
+}
+
+// Add a simple wrapper for common logging patterns
+logger.logRequest = (req, status) => {
+	const { method, originalUrl, ip } = req;
+	logger.info(`${method} ${originalUrl} from ${ip} - ${status}`);
 };
-
-// Log unhandled exceptions and rejections
-process.on('uncaughtException', (error) => {
-	logger.error(`Uncaught Exception: ${error.message}`, { 
-		stack: error.stack,
-		timestamp: new Date().toISOString()
-	});
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-	logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, { 
-		stack: reason.stack,
-		timestamp: new Date().toISOString()
-	});
-});
 
 module.exports = logger;
