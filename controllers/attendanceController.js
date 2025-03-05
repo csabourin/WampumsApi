@@ -2,6 +2,7 @@
 
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -11,7 +12,7 @@ const logger = require('../config/logger');
 exports.getAttendance = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		// Use provided date or default to today's date (YYYY-MM-DD)
 		const date = req.query.date || new Date().toISOString().split("T")[0];
 
@@ -39,7 +40,7 @@ exports.getAttendance = async (req, res) => {
 exports.updateAttendance = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const { participant_id, status, date } = req.body;
 
 		// Begin transaction
@@ -105,7 +106,7 @@ exports.getAttendanceDates = async (req, res) => {
 exports.getAttendanceReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const end_date = req.query.end_date || new Date().toISOString().split("T")[0];
 		// Default start_date is 30 days before end_date
 		const defaultStartDate = new Date(new Date(end_date).setDate(new Date(end_date).getDate() - 30))

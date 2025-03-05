@@ -48,10 +48,9 @@ router.get('/test-connection', async (req, res) => {
  * GET /get_organization_id
  */
 router.get('/get_organization_id', async (req, res) => {
-	const hostname = req.query.hostname || req.hostname;
 
 	try {
-		const organizationId = await determineOrganizationId(hostname);
+		const organizationId = await determineOrganizationId(req,res);
 
 		if (organizationId) {
 			jsonResponse(res, true, { organizationId });
@@ -71,8 +70,8 @@ router.get('/get_organization_id', async (req, res) => {
 router.get('/get_organization_settings', async (req, res) => {
 	try {
 		// Get organization ID from hostname
-		const hostname = req.hostname;
-		const organizationId = await determineOrganizationId(hostname);
+		
+		const organizationId = await determineOrganizationId(req,res);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization not found");
@@ -117,8 +116,7 @@ router.get('/get_organization_settings', async (req, res) => {
 router.get('/get_news', async (req, res) => {
 	try {
 		// Get organization ID from hostname
-		const hostname = req.hostname;
-		const organizationId = await determineOrganizationId(hostname);
+		const organizationId = await determineOrganizationId(req,res);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization not found");

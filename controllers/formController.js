@@ -1,6 +1,7 @@
 // controllers/formController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -9,7 +10,7 @@ const logger = require('../config/logger');
 exports.getFormTypes = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const formTypesResult = await client.query(
 			"SELECT DISTINCT form_type FROM organization_form_formats WHERE organization_id = $1 AND display_type = 'public'",
@@ -33,7 +34,7 @@ exports.getFormStructure = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { form_type } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!form_type) {
 			return jsonResponse(res, false, null, "Form type is required");
@@ -66,7 +67,7 @@ exports.saveFormSubmission = async (req, res) => {
 	try {
 		const { form_type, participant_id, submission_data } = req.body;
 		const userId = req.user.id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!form_type || !participant_id || !submission_data) {
 			return jsonResponse(res, false, null, "Missing required fields");
@@ -111,7 +112,7 @@ exports.getFormSubmission = async (req, res) => {
 	try {
 		const { participant_id, form_type } = req.query;
 		const userId = req.user.id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id || !form_type) {
 			return jsonResponse(
@@ -179,7 +180,7 @@ exports.getAllFormSubmissions = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { form_type } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!form_type) {
 			return jsonResponse(res, false, null, "Form type is required");
@@ -216,7 +217,7 @@ exports.getAllFormSubmissions = async (req, res) => {
 exports.getOrganizationFormFormats = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.query.organization_id || req.user.organizationId;
+		const organizationId = req.query.organization_id || getOrganizationId(req);
 
 		const formFormatsResult = await client.query(
 			`SELECT form_type, form_structure 

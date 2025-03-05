@@ -1,6 +1,7 @@
 // controllers/utilityController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -47,7 +48,7 @@ exports.getInitialData = async (req, res) => {
 exports.getAvailableDates = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT DISTINCT date::date AS date 
@@ -73,7 +74,7 @@ exports.getAvailableDates = async (req, res) => {
 exports.getReunionDates = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const datesResult = await client.query(
 			`SELECT DISTINCT date 
@@ -122,7 +123,7 @@ exports.getAttendanceDates = async (req, res) => {
 exports.getSubscribers = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT s.id, s.user_id, u.email 
@@ -167,7 +168,7 @@ exports.getActivitesRencontre = async (req, res) => {
 exports.getAnimateurs = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT u.id, u.full_name 
@@ -217,7 +218,7 @@ exports.getAttendance = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const date = req.query.date || new Date().toISOString().split("T")[0];
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const attendanceResult = await client.query(
 			`SELECT a.participant_id, a.status

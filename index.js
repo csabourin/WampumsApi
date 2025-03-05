@@ -27,6 +27,7 @@ app.set('trust proxy', 'loopback' || 'linklocal');
 app.use(bodyParser.json());
 app.use(helmet());
 app.use(cors());
+app.use(extractOrganizationFromJWT);
 app.use(rateLimit({ 
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // 100 requests per windowMs
@@ -73,7 +74,7 @@ app.use((req, res, next) => {
 // Set up organization ID middleware
 app.use(async (req, res, next) => {
   try {
-    const organizationId = await determineOrganizationId(req.hostname);
+    const organizationId = await determineOrganizationId(req);
     req.organizationId = organizationId;
     next();
   } catch (error) {

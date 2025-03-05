@@ -1,6 +1,7 @@
 // controllers/badgeController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -23,7 +24,7 @@ exports.saveBadgeProgress = async (req, res) => {
 			return jsonResponse(res, false, null, "Missing required fields");
 		}
 
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Get current max stars
 		const maxStarsResult = await client.query(
@@ -87,7 +88,7 @@ exports.getBadgeProgress = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");
@@ -115,7 +116,7 @@ exports.getBadgeProgress = async (req, res) => {
 exports.getPendingBadges = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT bp.*, p.first_name, p.last_name 
@@ -236,7 +237,7 @@ exports.getBadgeSummary = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");
@@ -298,7 +299,7 @@ exports.getBadgeHistory = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, territoire } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");

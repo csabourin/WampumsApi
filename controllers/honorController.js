@@ -7,6 +7,7 @@ get_recent_honors: Getting recent honors
 // controllers/honorController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -15,7 +16,7 @@ const logger = require('../config/logger');
 exports.getHonors = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const date = req.query.date || new Date().toISOString().split("T")[0];
 		const academicYearStart = 
 			new Date().getMonth() >= 8
@@ -80,7 +81,7 @@ exports.getHonors = async (req, res) => {
 exports.getRecentHonors = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name 
@@ -108,7 +109,7 @@ exports.awardHonor = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const honors = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const awards = [];
 
 		await client.query("BEGIN");
@@ -158,7 +159,7 @@ exports.awardHonor = async (req, res) => {
 exports.getHonorsReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const honorsReportResult = await client.query(
 			`SELECT 
@@ -190,7 +191,7 @@ exports.getHonorsReport = async (req, res) => {
 exports.getAvailableDates = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT DISTINCT date::date AS date 

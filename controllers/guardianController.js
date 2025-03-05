@@ -1,7 +1,7 @@
 // controllers/guardianController.js
-const { getCurrentOrganizationId, sanitizeInput } = require('../utils');
+const { sanitizeInput } = require('../utils');
 const logger = require('../config/logger');
-
+const { getOrganizationId } = require('../utils/organizationContext');
 const { pool } = require('../config/database');
 
 /**
@@ -39,7 +39,7 @@ exports.getGuardians = async (req, res) => {
 			);
 			const guardians = guardianDetailsResult.rows;
 
-			const orgId = getCurrentOrganizationId(req);
+			const orgId = getOrganizationId(req);
 			const customFormFormatResult = await client.query(
 				"SELECT form_structure FROM organization_form_formats WHERE form_type = 'parent_guardian' AND organization_id = $1",
 				[orgId]
@@ -378,7 +378,7 @@ exports.removeGuardians = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getParentUsers = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -407,7 +407,7 @@ exports.getParentUsers = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getParentContactList = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -494,7 +494,7 @@ exports.getParentDashboardData = async (req, res) => {
 		return res.json({ success: false, message: "Invalid user" });
 	}
 
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {

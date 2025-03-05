@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { Pool } = require('pg');
+const { pool } = require(`./config/database`);
 const sendgrid = require('@sendgrid/mail');
 const winston = require('winston');
 const { jsonResponse } = require('./utils/responseFormatter');
@@ -42,12 +42,6 @@ if (!DB_URL) {
 if (!JWT_SECRET) {
 	console.error('Missing required environment variable: JWT_SECRET_KEY');
 }
-
-// Configure database pool with proper error handling
-const pool = new Pool({
-	connectionString: DB_URL,
-	ssl: NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
 
 // Handle pool errors
 pool.on('error', (err) => {
@@ -251,29 +245,29 @@ function loadTranslations(lang) {
  * @param {string} currentHost - The current hostname
  * @returns {Promise<number|null>} - The organization ID or null if not found
  */
-async function determineOrganizationId(currentHost) {
-	if (!currentHost) {
-		console.error('No hostname provided to determineOrganizationId');
-		return null;
-	}
+// async function determineOrganizationId(currentHost) {
+// 	if (!currentHost) {
+// 		console.error('No hostname provided to determineOrganizationId');
+// 		return null;
+// 	}
 
-	const client = await pool.connect();
-	try {
-		const result = await client.query(
-			`SELECT organization_id FROM organization_domains 
-			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
-			 LIMIT 1`,
-			[currentHost, currentHost]
-		);
+// 	const client = await pool.connect();
+// 	try {
+// 		const result = await client.query(
+// 			`SELECT organization_id FROM organization_domains 
+// 			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+// 			 LIMIT 1`,
+// 			[currentHost, currentHost]
+// 		);
 
-		return result.rows[0]?.organization_id || null;
-	} catch (error) {
-		console.error('Error determining organization ID:', error);
-		return null;
-	} finally {
-		client.release();
-	}
-}
+// 		return result.rows[0]?.organization_id || null;
+// 	} catch (error) {
+// 		console.error('Error determining organization ID:', error);
+// 		return null;
+// 	} finally {
+// 		client.release();
+// 	}
+// }
 
 /**
  * Convert value to boolean format for database
@@ -289,33 +283,56 @@ function toBool(value) {
 	return Number(value) ? 't' : 'f';
 }
 
-exports.determineOrganizationId  = async (req, res) => {
+exports.determineOrganizationId = async (req, res) => {
+    try {
+        // First, try to get organization ID from JWT token
+        if (req.user && req.user.organizationId) {
+            // If JWT authentication middleware has already set req.user with organizationId
+            return jsonResponse(res, true, { organizationId: req.user.organizationId });
+        }
 
-		try {
-			// Extract hostname from request
-			const hostname = req.query.hostname || req.hostname;
+        // Then check the authorization header directly if middleware hasn't processed it
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+                const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+                
+                if (decoded && decoded.organizationId) {
+                    // Set on request for future middleware to use
+                    req.organizationId = decoded.organizationId;
+                    return jsonResponse(res, true, { organizationId: decoded.organizationId });
+                }
+            } catch (tokenError) {
+                // Token verification failed, continue to hostname method
+                logger.warn(`JWT verification failed: ${tokenError.message}`);
+            }
+        }
 
-			const client = await pool.connect();
-			try {
-				// Query the database for the organization ID based on hostname
-				const result = await client.query(
-					`SELECT organization_id FROM organization_domains 
-					 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
-					 LIMIT 1`,
-					[hostname, hostname]
-				);
-
-				if (result.rows.length > 0) {
-					const organizationId = result.rows[0].organization_id;
-					return jsonResponse(res, true, { organizationId });
-				} else {
-					return jsonResponse(res, false, null, "No organization matches this domain");
-				}
-			} finally {
-				client.release();
-			}
-		} catch (error) {
-			logger.error(`Error fetching organization ID: ${error.message}`);
-			return jsonResponse(res, false, null, "Error determining organization ID");
-		}
-	};
+        // Fallback to hostname lookup if no valid JWT
+        const hostname = req.query.hostname || req.hostname;
+        const client = await pool.connect();
+        try {
+            // Query the database for the organization ID based on hostname
+            const result = await client.query(
+                `SELECT organization_id FROM organization_domains 
+                 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+                 LIMIT 1`,
+                [hostname, hostname]
+            );
+            if (result.rows.length > 0) {
+                const organizationId = result.rows[0].organization_id;
+                // Set on request for future middleware to use
+                req.organizationId = organizationId;
+                return jsonResponse(res, true, { organizationId });
+            } else {
+                return jsonResponse(res, false, null, "No organization matches this domain");
+            }
+        } finally {
+            client.release();
+        }
+    } catch (error) {
+        logger.error(`Error in utils fetching organization ID: ${error.message}`);
+        return jsonResponse(res, false, null, "Error determining organization ID");
+    }
+};

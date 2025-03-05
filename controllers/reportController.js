@@ -1,6 +1,7 @@
 // controllers/reportController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -9,7 +10,7 @@ const logger = require('../config/logger');
 exports.getHealthContactReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT p.id AS participant_id, p.first_name, p.last_name, p.date_naissance, 
@@ -50,7 +51,7 @@ exports.getHealthContactReport = async (req, res) => {
 exports.getHealthReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT p.id as participant_id, p.first_name, p.last_name,
@@ -84,7 +85,7 @@ exports.getHealthReport = async (req, res) => {
 exports.getAllergiesReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -118,7 +119,7 @@ exports.getAllergiesReport = async (req, res) => {
 exports.getMedicationReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -151,7 +152,7 @@ exports.getMedicationReport = async (req, res) => {
 exports.getVaccineReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -183,7 +184,7 @@ exports.getVaccineReport = async (req, res) => {
 exports.getLeaveAloneReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -215,7 +216,7 @@ exports.getLeaveAloneReport = async (req, res) => {
 exports.getMediaAuthorizationReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -247,7 +248,7 @@ exports.getMediaAuthorizationReport = async (req, res) => {
 exports.getMissingDocumentsReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -289,7 +290,7 @@ exports.getMissingDocumentsReport = async (req, res) => {
 exports.getHonorsReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -321,7 +322,7 @@ exports.getHonorsReport = async (req, res) => {
 exports.getPointsReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -361,7 +362,7 @@ exports.getPointsReport = async (req, res) => {
 exports.getAttendanceReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const endDate = req.query.end_date || new Date().toISOString().split("T")[0];
 		const startDate = req.query.start_date || 
 			new Date(new Date().setDate(new Date().getDate() - 30))
@@ -435,7 +436,7 @@ exports.getAttendanceReport = async (req, res) => {
 exports.getParticipantAgeReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance, 
@@ -462,7 +463,7 @@ exports.getParticipantAgeReport = async (req, res) => {
 exports.getParentContactList = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -539,7 +540,7 @@ exports.getParentContactList = async (req, res) => {
 exports.getMailingList = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Get emails and roles from user_organizations
 		const usersEmailsResult = await client.query(

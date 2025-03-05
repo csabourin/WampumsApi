@@ -2,6 +2,7 @@
 
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -10,7 +11,7 @@ const logger = require('../config/logger');
 exports.getParticipants = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
 			 FROM participants p
@@ -35,7 +36,7 @@ exports.getParticipant = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const participantId = req.params.id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
 			 FROM participants p
@@ -63,7 +64,7 @@ exports.getParticipantDetails = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const participantId = req.query.participant_id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		if (!participantId) {
 			return jsonResponse(res, false, null, "Participant ID is required");
 		}
@@ -105,7 +106,7 @@ exports.saveParticipant = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { first_name, last_name, date_naissance } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		if (!first_name || !last_name || !date_naissance) {
 			return jsonResponse(res, false, null, "Missing required fields");
 		}
@@ -139,7 +140,7 @@ exports.saveParticipant = async (req, res) => {
 exports.getParticipantAgeReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance,
 							EXTRACT(YEAR FROM AGE(p.date_naissance)) AS age
@@ -164,7 +165,7 @@ exports.getParticipantAgeReport = async (req, res) => {
 exports.getParticipantsWithUsers = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, 
 							string_agg(u.full_name, ', ') AS associated_users
@@ -194,7 +195,7 @@ exports.linkParticipantToOrganization = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");
 		}
@@ -225,7 +226,7 @@ exports.removeParticipantFromOrganization = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");
 		}
@@ -255,7 +256,7 @@ exports.associateUser = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, user_id } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		if (!participant_id || !user_id) {
 			return jsonResponse(res, false, null, "Participant ID and User ID are required");
 		}
@@ -318,7 +319,7 @@ exports.getUserChildren = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const userId = req.user.id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
 			 FROM participants p

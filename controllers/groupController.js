@@ -10,6 +10,7 @@ update_points: Updating points for groups and individuals
 // controllers/groupController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -18,7 +19,7 @@ const logger = require('../config/logger');
 exports.getGroups = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -49,7 +50,7 @@ exports.addGroup = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { group_name } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!group_name || group_name.trim() === '') {
 			return jsonResponse(res, false, null, "Group name is required");
@@ -166,7 +167,7 @@ exports.updateParticipantGroup = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, group_id, is_leader, is_second_leader } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Validate inputs
 		if (!participant_id) {
@@ -254,7 +255,7 @@ exports.updatePoints = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const updates = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const responses = [];
 
 		await client.query("BEGIN");
@@ -346,7 +347,7 @@ exports.updatePoints = async (req, res) => {
 exports.getPointsReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const pointsReportResult = await client.query(
 			`SELECT 
@@ -387,7 +388,7 @@ exports.getPointsReport = async (req, res) => {
 exports.getParticipantsByGroup = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 

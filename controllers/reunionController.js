@@ -1,6 +1,6 @@
 // controllers/reunionController.js
 const { pool } = require('../config/database');
-const { getCurrentOrganizationId } = require('../utils');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -10,7 +10,7 @@ const logger = require('../config/logger');
  */
 exports.getReunionPreparation = async (req, res) => {
 	const date = req.query.date || new Date().toISOString().split('T')[0];
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 
 	const client = await pool.connect();
 	try {
@@ -55,7 +55,7 @@ exports.saveReunionPreparation = async (req, res) => {
 		notes
 	} = req.body;
 
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -95,7 +95,7 @@ exports.saveReunionPreparation = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getReunionDates = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -126,7 +126,7 @@ exports.getReunionDates = async (req, res) => {
  */
 exports.saveReminder = async (req, res) => {
 	const { reminder_date, is_recurring, reminder_text } = req.body;
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -151,7 +151,7 @@ exports.saveReminder = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getReminder = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -182,7 +182,7 @@ exports.getReminder = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getNextMeetingInfo = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {
@@ -237,7 +237,7 @@ exports.getActivitesRencontre = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.getAnimateurs = async (req, res) => {
-	const organizationId = getCurrentOrganizationId(req);
+	const organizationId = getOrganizationId(req);
 	const client = await pool.connect();
 
 	try {

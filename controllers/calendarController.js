@@ -1,6 +1,7 @@
 // controllers/calendarController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -9,7 +10,7 @@ const logger = require('../config/logger');
 exports.getCalendars = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT p.id AS participant_id, p.first_name, p.last_name, 
@@ -42,7 +43,7 @@ exports.getParticipantCalendar = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id } = req.query;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id) {
 			return jsonResponse(res, false, null, "Participant ID is required");
@@ -85,7 +86,7 @@ exports.updateCalendar = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, amount, amount_paid } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id || amount === undefined) {
 			return jsonResponse(res, false, null, "Participant ID and amount are required");
@@ -140,7 +141,7 @@ exports.updateCalendarPaid = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, paid_status } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id || paid_status === undefined) {
 			return jsonResponse(res, false, null, "Participant ID and paid status are required");
@@ -170,7 +171,7 @@ exports.updateCalendarAmountPaid = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { participant_id, amount_paid } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!participant_id || amount_paid === undefined) {
 			return jsonResponse(res, false, null, "Participant ID and amount paid are required");
@@ -213,7 +214,7 @@ exports.updateCalendarAmountPaid = async (req, res) => {
 exports.getCalendarSummary = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT 
@@ -242,7 +243,7 @@ exports.getCalendarSummary = async (req, res) => {
 exports.getPaymentReport = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Fully paid calendars
 		const paidResult = await client.query(

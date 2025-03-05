@@ -1,6 +1,7 @@
 // controllers/organizationController.js
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -100,7 +101,7 @@ exports.updateOrganizationSettings = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { setting_key, setting_value } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!setting_key || setting_value === undefined) {
 			return jsonResponse(res, false, null, "Missing required fields");
@@ -190,7 +191,7 @@ exports.registerForOrganization = async (req, res) => {
 	try {
 		const { registration_password, role, link_children } = req.body;
 		const userId = req.user.id;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Verify registration password
 		const correctPasswordResult = await client.query(
@@ -327,7 +328,7 @@ exports.createNews = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { title, content, is_pinned, is_published } = req.body;
-		const organizationId = req.user.organizationId;
+		const organizationId = getOrganizationId(req);
 		const userId = req.user.id;
 
 		if (!title || !content) {
