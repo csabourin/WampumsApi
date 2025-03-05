@@ -55,7 +55,7 @@ router.get('/get_organization_id', async (req, res) => {
 		if (organizationId) {
 			jsonResponse(res, true, { organizationId });
 		} else {
-			jsonResponse(res, false, null, "No organization matches this domain");
+			jsonResponse(res, false, null, "No organization matches this domain in public");
 		}
 	} catch (error) {
 		console.error("Error fetching organization ID:", error);

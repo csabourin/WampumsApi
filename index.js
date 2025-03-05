@@ -10,7 +10,7 @@ const { determineOrganizationId } = require('./utils');
 const logger = require('./config/logger');
 
 // Import middleware
-const { tokenMiddleware, handleError } = require('./config/middleware');
+const { extractOrganizationFromJWT, tokenMiddleware, handleError } = require('./config/middleware');
 
 // Import routes
 const publicRoutes = require('./routes/public');
@@ -74,7 +74,8 @@ app.use((req, res, next) => {
 // Set up organization ID middleware
 app.use(async (req, res, next) => {
   try {
-    const organizationId = await determineOrganizationId(req);
+    const organizationId = await determineOrganizationId(req,res);
+		logger.info(organizationId)
     req.organizationId = organizationId;
     next();
   } catch (error) {

@@ -285,10 +285,15 @@ function toBool(value) {
 
 exports.determineOrganizationId = async (req, res) => {
     try {
-        // First, try to get organization ID from JWT token
-        if (req.user && req.user.organizationId) {
+        // First, try to get organization ID from headers
+        if (req.headers['X-Organization-ID']) {
+            return jsonResponse(res, true, { organizationId: req.headers['X-Organization-ID'] });
+        }
+
+        // Then try to get organization ID from JWT token
+        if (req.user.organizationId || req.organizationId) {
             // If JWT authentication middleware has already set req.user with organizationId
-            return jsonResponse(res, true, { organizationId: req.user.organizationId });
+            return jsonResponse(res, true, { organizationId: req.user.organizationId || req.organizationId });
         }
 
         // Then check the authorization header directly if middleware hasn't processed it
@@ -326,13 +331,13 @@ exports.determineOrganizationId = async (req, res) => {
                 req.organizationId = organizationId;
                 return jsonResponse(res, true, { organizationId });
             } else {
-                return jsonResponse(res, false, null, "No organization matches this domain");
+                return jsonResponse(res, false, null, "No organization matches this domain in utils");
             }
         } finally {
             client.release();
         }
     } catch (error) {
         logger.error(`Error in utils fetching organization ID: ${error.message}`);
-        return jsonResponse(res, false, null, "Error determining organization ID");
+        return jsonResponse(res, false, null, `Error determining organization ID in utils ${error.message}`);
     }
 };
