@@ -73,15 +73,17 @@ app.use((req, res, next) => {
 
 // Set up organization ID middleware
 app.use(async (req, res, next) => {
-  try {
-    const organizationId = await determineOrganizationId(req,res);
-		logger.info(organizationId)
-    req.organizationId = organizationId;
-    next();
-  } catch (error) {
-    logger.error('Error determining organization:', error);
-    next();
-  }
+	try {
+		const organizationId = await determineOrganizationId(req);
+		if (organizationId) {
+			req.organizationId = organizationId;
+			logger.debug(`Organization ID set to ${organizationId}`);
+		}
+		next();
+	} catch (error) {
+		logger.error('Error determining organization:', error);
+		next(); // Continue anyway, other middleware might handle this
+	}
 });
 
 // Register routes

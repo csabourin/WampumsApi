@@ -283,61 +283,70 @@ function toBool(value) {
 	return Number(value) ? 't' : 'f';
 }
 
-exports.determineOrganizationId = async (req, res) => {
-    try {
-        // First, try to get organization ID from headers
-        if (req.headers['X-Organization-ID']) {
-            return jsonResponse(res, true, { organizationId: req.headers['X-Organization-ID'] });
-        }
+/**
+ * Determine the organization ID based on various sources (JWT, headers, hostname)
+ * @param {Object} req - Express request object
+ * @returns {Promise<number|null>} - The organization ID or null if not found
+ */
+exports.determineOrganizationId = async (req) => {
+		try {
+				// First, try to get organization ID from headers
+			logger.info(JSON.stringify(req.headers));
+				if (req.headers['x-organization-id']) {
+						return req.headers['x-organization-id'];
+				}
 
-        // Then try to get organization ID from JWT token
-        if (req.user.organizationId || req.organizationId) {
-            // If JWT authentication middleware has already set req.user with organizationId
-            return jsonResponse(res, true, { organizationId: req.user.organizationId || req.organizationId });
-        }
+				// Then try to get organization ID from JWT token
+				if (req.user && req.user.organizationId) {
+						return req.user.organizationId;
+				}
 
-        // Then check the authorization header directly if middleware hasn't processed it
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            try {
-                const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-                const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-                
-                if (decoded && decoded.organizationId) {
-                    // Set on request for future middleware to use
-                    req.organizationId = decoded.organizationId;
-                    return jsonResponse(res, true, { organizationId: decoded.organizationId });
-                }
-            } catch (tokenError) {
-                // Token verification failed, continue to hostname method
-                logger.warn(`JWT verification failed: ${tokenError.message}`);
-            }
-        }
+				if (req.organizationId) {
+						return req.organizationId;
+				}
 
-        // Fallback to hostname lookup if no valid JWT
-        const hostname = req.query.hostname || req.hostname;
-        const client = await pool.connect();
-        try {
-            // Query the database for the organization ID based on hostname
-            const result = await client.query(
-                `SELECT organization_id FROM organization_domains 
-                 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
-                 LIMIT 1`,
-                [hostname, hostname]
-            );
-            if (result.rows.length > 0) {
-                const organizationId = result.rows[0].organization_id;
-                // Set on request for future middleware to use
-                req.organizationId = organizationId;
-                return jsonResponse(res, true, { organizationId });
-            } else {
-                return jsonResponse(res, false, null, "No organization matches this domain in utils");
-            }
-        } finally {
-            client.release();
-        }
-    } catch (error) {
-        logger.error(`Error in utils fetching organization ID: ${error.message}`);
-        return jsonResponse(res, false, null, `Error determining organization ID in utils ${error.message}`);
-    }
+				// Then check the authorization header directly if middleware hasn't processed it
+				const authHeader = req.headers.authorization;
+				if (authHeader && authHeader.startsWith('Bearer ')) {
+						try {
+								const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+								const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+								if (decoded && decoded.organizationId) {
+										// Set on request for future middleware to use
+										req.organizationId = decoded.organizationId;
+										return decoded.organizationId;
+								}
+						} catch (tokenError) {
+								// Token verification failed, continue to hostname method
+								logger.warn(`JWT verification failed: ${tokenError.message}`);
+						}
+				}
+
+				// Fallback to hostname lookup if no valid JWT
+				const hostname = req.query.hostname || req.hostname;
+				const client = await pool.connect();
+				try {
+						// Query the database for the organization ID based on hostname
+						const result = await client.query(
+								`SELECT organization_id FROM organization_domains 
+								 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+								 LIMIT 1`,
+								[hostname, hostname]
+						);
+						if (result.rows.length > 0) {
+								const organizationId = result.rows[0].organization_id;
+								// Set on request for future middleware to use
+								req.organizationId = organizationId;
+								return organizationId;
+						} else {
+								return null;
+						}
+				} finally {
+						client.release();
+				}
+		} catch (error) {
+				logger.error(`Error determining organization ID: ${error.message}`);
+				return null;
+		}
 };
