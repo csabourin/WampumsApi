@@ -24,7 +24,10 @@ const pool = new Pool({
 // Listen for pool errors
 pool.on('error', (err, client) => {
 	logger.error(`Unexpected error on idle client: ${err.message}`);
-	process.exit(-1); // Exit on severe database connection issues
+	// Don't exit in production for robustness
+	if (process.env.NODE_ENV !== 'production') {
+		process.exit(-1);
+	}
 });
 
 // Test connection on initialization
@@ -35,6 +38,10 @@ pool.on('error', (err, client) => {
 		client.release();
 	} catch (err) {
 		logger.error(`Failed to connect to database: ${err.message}`);
+		// Don't exit in production for robustness
+		if (process.env.NODE_ENV !== 'production') {
+			process.exit(1);
+		}
 	}
 })();
 
