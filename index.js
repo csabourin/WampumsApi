@@ -26,7 +26,39 @@ app.set('trust proxy', 'loopback' || 'linklocal');
 // Configure middleware
 app.use(bodyParser.json());
 app.use(helmet());
-app.use(cors());
+// CORS setup with wildcards for allowed origins
+const allowedOriginPatterns = [
+  /^https:\/\/.*\.worf\.replit\.dev$/,  // All worf.replit.dev subdomains
+  /^https:\/\/.*\.replit\.app$/,        // All replit.app subdomains
+  /^https:\/\/wampums\.app$/,           // Exact match for wampums.app
+  /^https:\/\/.*\.wampums\.app$/,       // All wampums.app subdomains
+  /^https:\/\/meute6a\.app$/,           // Exact match for meute6a.app
+  /^http:\/\/localhost:\d+$/            // localhost with any port number
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    // Check if origin matches any of our patterns
+    const isAllowed = allowedOriginPatterns.some(pattern => pattern.test(origin));
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      console.log(`CORS blocked origin: ${origin}`);
+      callback(new Error(msg), false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Organization-ID'],
+  credentials: true
+}));
+
+// Enable pre-flight for all routes with OPTIONS
+app.options('*', cors());
 app.use(extractOrganizationFromJWT);
 app.use(rateLimit({ 
   windowMs: 15 * 60 * 1000, // 15 minutes
