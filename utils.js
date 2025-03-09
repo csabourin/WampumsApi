@@ -319,7 +319,7 @@ exports.determineOrganizationId = async (req) => {
 								}
 						} catch (tokenError) {
 								// Token verification failed, continue to hostname method
-								logger.warn(`JWT verification failed: ${tokenError.message}`);
+								logger.warn(`JWT verification failed in utils: ${tokenError.message}`);
 						}
 				}
 

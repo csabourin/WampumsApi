@@ -36,14 +36,11 @@ const allowedOriginPatterns = [
   /^http:\/\/localhost:\d+$/            // localhost with any port number
 ];
 
-app.use(cors({
+// Enable pre-flight for all routes with OPTIONS
+const corsOptions = {
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-
-    // Check if origin matches any of our patterns
     const isAllowed = allowedOriginPatterns.some(pattern => pattern.test(origin));
-
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -55,10 +52,11 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Organization-ID'],
   credentials: true
-}));
+};
+app.use(cors());
+// app.use(cors(corsOptions));
+// app.options('*', cors(corsOptions));
 
-// Enable pre-flight for all routes with OPTIONS
-app.options('*', cors());
 app.use(extractOrganizationFromJWT);
 app.use(rateLimit({ 
   windowMs: 15 * 60 * 1000, // 15 minutes

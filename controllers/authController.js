@@ -69,7 +69,7 @@ exports.login = async (req, res) => {
 				organizationId: req.organizationId,
 			},
 			process.env.JWT_SECRET_KEY,
-			{ expiresIn: "24h" }
+			{ expiresIn: "48h" }
 		);
 
 		// Fetch unlinked guardian participants

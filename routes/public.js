@@ -283,7 +283,7 @@ router.post('/register', [
 		} catch (err) {
 			return res.status(401).json({ 
 				success: false, 
-				message: "Invalid or expired token" 
+				message: "Invalid or expired token while getting ID" 
 			});
 		}
 

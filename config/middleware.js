@@ -4,7 +4,7 @@ const logger = require('./logger');
 const { Pool } = require('pg');
 
 // Secret key for JWT verification
-const secretKey = process.env.JWT_SECRET_KEY;
+const secretKey = process.env['JWT_SECRET_KEY'];
 
 // Database connection pool
 const pool = new Pool({
@@ -159,6 +159,8 @@ const tokenMiddleware = async (req, res, next) => {
 	try {
 		// Verify token
 		const decoded = jwt.verify(token, secretKey);
+		logger.info(decoded);
+		logger.info(JSON.stringify(decoded));
 
 		// Check if organization context exists
 		if (!decoded.organizationId) {
@@ -168,7 +170,7 @@ const tokenMiddleware = async (req, res, next) => {
 		// For routes requiring user authentication, check for user ID
 		const requiresUserAuth = !isPublicRoute(req.path);
 
-		if (requiresUserAuth && !decoded.user_id) {
+		if (requiresUserAuth && !decoded.id) {
 			return res.status(403).json({
 				success: false,
 				message: "User authentication required for this resource"
@@ -178,10 +180,10 @@ const tokenMiddleware = async (req, res, next) => {
 		// Add decoded info to request
 		req.organizationId = decoded.organizationId;
 
-		if (decoded.user_id) {
+		if (decoded.id) {
 			req.user = {
-				id: decoded.user_id,
-				role: decoded.user_role || 'user',
+				id: decoded.id,
+				role: decoded.role || 'user',
 				organizationId: decoded.organizationId
 			};
 		}
