@@ -1,66 +1,86 @@
 // utils/organizationContext.js
-
+const jwt = require('jsonwebtoken');
+const { pool } = require('../config/database');
 const logger = require('../config/logger');
 
 /**
- * Get the current organization ID from the request
- * First check from the JWT token in req.user, then fall back to req.organizationId
- * 
+ * Determine organization ID from multiple sources with consistent priority
  * @param {Object} req - Express request object
- * @returns {number|null} - The organization ID or null if not found
- * @throws {Error} - If organization ID is required but not found
+ * @returns {Promise<number|null>} Organization ID or null
  */
-function getOrganizationId(req, required = true) {
-		// First try to get from user context (set by JWT)
-		if (req.user && req.user.organizationId) {
-				return req.user.organizationId;
+async function determineOrganizationId(req) {
+	try {
+		// 1. First check explicit header (highest priority)
+		if (req.headers['x-organization-id']) {
+			const orgId = parseInt(req.headers['x-organization-id'], 10);
+			if (!isNaN(orgId)) {
+				logger.debug(`Organization ID from header: ${orgId}`);
+				return orgId;
+			}
 		}
 
-		// Then from request object directly (might be set by middleware)
-		if (req.organizationId) {
-				return req.organizationId;
-		}
+		// 2. Check JWT token in Authorization header
+		const authHeader = req.headers.authorization;
+		if (authHeader && authHeader.startsWith('Bearer ')) {
+			try {
+				const token = authHeader.substring(7);
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-		// If organization ID is required but not found, throw an error
-		if (required) {
-				const err = new Error('Organization ID not found in request');
-				logger.error(err);
-				throw err;
-		}
-
-		// Otherwise just return null
-		logger.warn('No organization ID found in request');
-		return null;
-}
-
-/**
- * Middleware to ensure organization context exists
- * Will extract organization ID from JWT or set it from hostname
- * 
- * @param {boolean} required - If true, will return 400 error if organization ID not found
- * @returns {Function} - Express middleware
- */
-function requireOrganizationContext(required = true) {
-		return (req, res, next) => {
-				try {
-						const organizationId = getOrganizationId(req, required);
-						if (required && !organizationId) {
-								return res.status(400).json({
-										success: false,
-										message: 'Organization ID is required'
-								});
-						}
-						next();
-				} catch (error) {
-						return res.status(400).json({
-								success: false,
-								message: error.message
-						});
+				if (decoded && decoded.organizationId) {
+					logger.debug(`Organization ID from JWT: ${decoded.organizationId}`);
+					return decoded.organizationId;
 				}
-		};
+			} catch (tokenError) {
+				// JWT verification failed, continue to next method
+				logger.debug(`JWT verification failed: ${tokenError.message}`);
+			}
+		}
+
+		// 3. Fallback to hostname lookup
+		const hostname = req.query.hostname || req.hostname;
+		if (hostname) {
+			const client = await pool.connect();
+			try {
+				const result = await client.query(
+					`SELECT organization_id FROM organization_domains 
+					 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+					 LIMIT 1`,
+					[hostname, hostname]
+				);
+
+				if (result.rows.length > 0) {
+					const orgId = result.rows[0].organization_id;
+					logger.debug(`Organization ID from hostname: ${orgId}`);
+					return orgId;
+				}
+			} finally {
+				client.release();
+			}
+		}
+
+		logger.debug('No organization ID could be determined');
+		return null;
+	} catch (error) {
+		logger.error(`Error determining organization ID: ${error.message}`);
+		return null;
+	}
 }
 
+// Export both the function and a middleware
 module.exports = {
-		getOrganizationId,
-		requireOrganizationContext
+	determineOrganizationId,
+
+	// Middleware that adds organizationId to the request
+	addOrganizationToRequest: async (req, res, next) => {
+		try {
+			const orgId = await determineOrganizationId(req);
+			if (orgId) {
+				req.organizationId = orgId;
+			}
+			next();
+		} catch (error) {
+			logger.error(`Organization middleware error: ${error.message}`);
+			next();
+		}
+	}
 };

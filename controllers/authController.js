@@ -16,98 +16,158 @@ const { pool } = require("../config/database");
 const { jsonResponse } = require("../utils/responseFormatter");
 const logger = require("../config/logger");
 const { sendAdminVerificationEmail } = require("../services/emailService");
+const { 
+	authenticateUser, 
+	refreshAccessToken,
+	revokeUserTokens 
+} = require('../services/authService');
 
 /**
  * Handle user login
  */
 exports.login = async (req, res) => {
-	const client = await pool.connect();
 	try {
-		const email = req.body.email ? req.body.email.toLowerCase() : "";
+		const email = req.body.email?.toLowerCase() || "";
 		const password = req.body.password || "";
-		logger.info(`Login attempt for email: ${email}`);
+		const organizationId = req.organizationId;
 
-		// Fetch user from the database and verify credentials
-		const result = await client.query(
-			`SELECT u.id, u.email, u.password, u.is_verified, u.full_name, uo.role
-			 FROM users u
-			 JOIN user_organizations uo ON u.id = uo.user_id
-			 WHERE u.email = $1 AND uo.organization_id = $2`,
-			[email, req.organizationId]
-		);
-
-		const user = result.rows[0];
-		if (!user) {
-			return jsonResponse(res, false, null, "Invalid email or password.");
+		if (!organizationId) {
+			return jsonResponse(res, false, null, "Organization ID is required");
 		}
 
-		// Handle hash compatibility between $2y$ and $2b$
-		const hashedPassword = user.password.startsWith("$2y$")
-			? user.password.replace("$2y$", "$2b$")
-			: user.password;
-
-		// Verify password
-		if (!(await bcrypt.compare(password, hashedPassword))) {
-			return jsonResponse(res, false, null, "Invalid email or password.");
-		}
-
-		// Check account verification
-		if (!user.is_verified) {
-			return jsonResponse(
-				res,
-				false,
-				null,
-				"Your account is not yet verified. Please wait for admin verification."
+		const client = await pool.connect();
+		try {
+			// Fetch user from the database with role for this organization
+			const result = await client.query(
+				`SELECT u.id, u.email, u.password, u.is_verified, u.full_name, uo.role
+				 FROM users u
+				 JOIN user_organizations uo ON u.id = uo.user_id
+				 WHERE u.email = $1 AND uo.organization_id = $2`,
+				[email, organizationId]
 			);
-		}
 
-		// Generate JWT token
-		const token = jwt.sign(
-			{
+			const user = result.rows[0];
+			if (!user) {
+				return jsonResponse(res, false, null, "Invalid email or password");
+			}
+
+			// Check password
+			const hashedPassword = user.password.startsWith("$2y$")
+				? user.password.replace("$2y$", "$2b$")
+				: user.password;
+
+			if (!(await bcrypt.compare(password, hashedPassword))) {
+				return jsonResponse(res, false, null, "Invalid email or password");
+			}
+
+			// Check account verification
+			if (!user.is_verified) {
+				return jsonResponse(
+					res,
+					false,
+					null,
+					"Your account is not verified. Please wait for admin verification."
+				);
+			}
+
+			// Generate JWT token with clear expiration
+			const token = jwt.sign(
+				{
+					id: user.id,
+					role: user.role,
+					organizationId: organizationId,
+					exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+				},
+				process.env.JWT_SECRET_KEY
+			);
+
+			// Fetch unlinked guardian participants
+			const guardianParticipantsResult = await client.query(
+				`SELECT pg.id, p.id AS participant_id, p.first_name, p.last_name 
+				 FROM parents_guardians pg
+				 JOIN participant_guardians pgu ON pg.id = pgu.guardian_id
+				 JOIN participants p ON pgu.participant_id = p.id
+				 LEFT JOIN user_participants up ON up.participant_id = p.id AND up.user_id = $1
+				 WHERE pg.courriel = $2 AND up.participant_id IS NULL`,
+				[user.id, email]
+			);
+
+			return jsonResponse(res, true, {
+				token,
 				id: user.id,
-				role: user.role,
-				organizationId: req.organizationId,
-			},
-			process.env.JWT_SECRET_KEY,
-			{ expiresIn: "48h" }
-		);
-
-		// Fetch unlinked guardian participants
-		const guardianParticipantsResult = await client.query(
-			`SELECT pg.id, p.id AS participant_id, p.first_name, p.last_name 
-			 FROM parents_guardians pg
-			 JOIN participant_guardians pgu ON pg.id = pgu.guardian_id
-			 JOIN participants p ON pgu.participant_id = p.id
-			 LEFT JOIN user_participants up ON up.participant_id = p.id AND up.user_id = $1
-			 WHERE pg.courriel = $2 AND up.participant_id IS NULL`,
-			[user.id, email]
-		);
-
-		const response = {
-			success: true,
-			message: "login_successful",
-			token,
-			id: user.id,
-			user_role: user.role,
-			user_full_name: user.full_name,
-			is_verified: user.is_verified,
-		};
-
-		if (guardianParticipantsResult.rows.length > 0) {
-			response.guardian_participants = guardianParticipantsResult.rows;
+				user_role: user.role,
+				user_full_name: user.full_name,
+				is_verified: user.is_verified,
+				guardian_participants: guardianParticipantsResult.rows
+			}, "Login successful");
+		} finally {
+			client.release();
 		}
-
-		return jsonResponse(res, true, response);
 	} catch (error) {
 		logger.error(`Login error: ${error.message}`);
-		return jsonResponse(
-			res,
-			false,
-			null,
-			`An error occurred during login: ${error.message}`
-		);
-	} finally {
-		client.release();
+		return jsonResponse(res, false, null, "An error occurred during login");
+	}
+};
+
+/**
+ * Handle token refresh
+ */
+exports.refreshToken = async (req, res) => {
+	try {
+		// Get refresh token from cookie or request body
+		const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+		if (!refreshToken) {
+			return jsonResponse(res, false, null, "Refresh token is required");
+		}
+
+		const refreshResult = await refreshAccessToken(refreshToken);
+
+		if (!refreshResult.success) {
+			return jsonResponse(res, false, null, refreshResult.message);
+		}
+
+		// Update refresh token cookie if present
+		if (req.cookies?.refreshToken) {
+			res.cookie('refreshToken', refreshResult.tokens.refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+			});
+		}
+
+		return jsonResponse(res, true, {
+			accessToken: refreshResult.tokens.accessToken,
+			refreshToken: req.cookies?.refreshToken ? undefined : refreshResult.tokens.refreshToken,
+			user: refreshResult.user
+		});
+
+	} catch (error) {
+		logger.error(`Token refresh error: ${error.message}`);
+		return jsonResponse(res, false, null, "Failed to refresh token");
+	}
+};
+
+/**
+ * Handle user logout
+ */
+exports.logout = async (req, res) => {
+	try {
+		// Clear refresh token cookie if present
+		if (req.cookies?.refreshToken) {
+			res.clearCookie('refreshToken');
+		}
+
+		// For API clients, we recommend token revocation
+		if (req.user?.id && req.body.revokeAll) {
+			await revokeUserTokens(req.user.id);
+		}
+
+		return jsonResponse(res, true, null, "Logged out successfully");
+	} catch (error) {
+		logger.error(`Logout error: ${error.message}`);
+		return jsonResponse(res, false, null, "An error occurred during logout");
 	}
 };
 

@@ -5,9 +5,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { Pool } = require('pg');
 const { determineOrganizationId } = require('./utils');
+const { addOrganizationToRequest } = require('./utils/organizationContext');
 const logger = require('./config/logger');
+const { errorHandler } = require('./config/middleware');
 
 // Import middleware
 const { extractOrganizationFromJWT, tokenMiddleware, handleError } = require('./config/middleware');
@@ -26,6 +27,7 @@ app.set('trust proxy', 'loopback' || 'linklocal');
 // Configure middleware
 app.use(bodyParser.json());
 app.use(helmet());
+app.use(addOrganizationToRequest);
 // CORS setup with wildcards for allowed origins
 const allowedOriginPatterns = [
   /^https:\/\/.*\.worf\.replit\.dev$/,  // All worf.replit.dev subdomains
@@ -57,7 +59,6 @@ app.use(cors());
 // app.use(cors(corsOptions));
 // app.options('*', cors(corsOptions));
 
-app.use(extractOrganizationFromJWT);
 app.use(rateLimit({ 
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // 100 requests per windowMs
@@ -120,8 +121,7 @@ app.use(async (req, res, next) => {
 app.use('/', publicRoutes);
 
 // Apply authentication middleware for protected routes
-app.use('/api', tokenMiddleware);
-app.use('/api', apiRoutes);
+app.use('/api', tokenMiddleware, apiRoutes);
 
 // Global error handling
 app.use(handleError);

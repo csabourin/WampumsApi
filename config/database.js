@@ -17,7 +17,7 @@ const pool = new Pool({
 		? { rejectUnauthorized: false } // For production environments
 		: false, // For development environment
 	max: 20, // Maximum number of clients in the pool
-	idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
+	idleTimeoutMillis: 3000, // How long a client is allowed to remain idle before being closed
 	connectionTimeoutMillis: 2000, // How long to wait for a connection to become available
 });
 

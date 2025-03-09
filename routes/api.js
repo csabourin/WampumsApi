@@ -17,11 +17,12 @@ const reunionController = require('../controllers/reunionController');
 const reportController = require('../controllers/reportController');
 const organizationController = require('../controllers/organizationController');
 const utilityController = require('../controllers/utilityController');
+const { requireOrganization } = require('../middleware/organizationContext');
 
 const router = express.Router();
 
 // Authentication routes
-router.post('/login', [
+router.post('/login', requireOrganization(), [
 	check('email').isEmail().normalizeEmail(),
 	check('password').notEmpty(),
 	validateRequest
@@ -52,10 +53,11 @@ router.post('/reset-password', [
 	validateRequest
 ], authController.resetPassword);
 
+router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authController.logout);
 
 // Users and permissions
-router.get('/users', authController.getUsers);
+router.get('/users', requireOrganization(), authController.getUsers);
 router.post('/check-permission', authController.checkPermission);
 router.post('/approve-user', [
 	check('user_id').notEmpty(),
@@ -70,7 +72,7 @@ router.post('/update-user-role', [
 ], authController.updateUserRole);
 
 // Participant routes
-router.get('/participants', participantController.getParticipants);
+router.get('/participants', requireOrganization(), participantController.getParticipants);
 router.get('/participant/:id', participantController.getParticipant);
 router.get('/participant-details', participantController.getParticipantDetails);
 router.post('/save-participant', [

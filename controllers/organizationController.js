@@ -13,15 +13,26 @@ exports.getOrganizationId = async (req, res) => {
 		// Extract hostname from request
 		const hostname = req.query.hostname || req.hostname;
 
-		// Use the imported determineOrganizationId function
-		const organizationId = await determineOrganizationId(hostname);
+		const client = await pool.connect();
+		try {
+			// Query the database for the organization ID based on hostname
+			const result = await client.query(
+				`SELECT organization_id FROM organization_domains 
+				 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+				 LIMIT 1`,
+				[hostname, hostname]
+			);
 
-		if (organizationId) {
-			logger.info(`Resolved organization ID ${organizationId} for hostname ${hostname}`);
-			return jsonResponse(res, true, { organizationId });
-		} else {
-			logger.warn(`No organization found for hostname ${hostname}`);
-			return jsonResponse(res, false, null, "No organization matches this domain");
+			if (result.rows.length > 0) {
+				const organizationId = result.rows[0].organization_id;
+				logger.info(`Resolved organization ID ${organizationId} for hostname ${hostname}`);
+				return jsonResponse(res, true, { organizationId });
+			} else {
+				logger.warn(`No organization found for hostname ${hostname}`);
+				return jsonResponse(res, false, null, "No organization matches this domain");
+			}
+		} finally {
+			client.release();
 		}
 	} catch (error) {
 		logger.error(`Error determining organization ID: ${error.message}`);
