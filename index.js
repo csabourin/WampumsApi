@@ -56,6 +56,7 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors());
+app.use(express.static('public'));
 // app.use(cors(corsOptions));
 // app.options('*', cors(corsOptions));
 
