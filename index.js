@@ -26,7 +26,7 @@ app.set('trust proxy', 'loopback' || 'linklocal');
 
 // Configure middleware
 app.use(bodyParser.json());
-app.use(helmet());
+// app.use(helmet());
 app.use(addOrganizationToRequest);
 // CORS setup with wildcards for allowed origins
 const allowedOriginPatterns = [
