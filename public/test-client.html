@@ -79,7 +79,7 @@
     }
 
     async function testProtected() {
-      const response = await fetch(`${BASE_URL}/api/users`, {
+      const response = await fetch(`${BASE_URL}/api/users?organization_id=1`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

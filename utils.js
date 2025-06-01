@@ -291,8 +291,8 @@ function toBool(value) {
 exports.determineOrganizationId = async (req) => {
 		try {
 				// First, try to get organization ID from headers
-			logger.info(JSON.stringify(req.headers));
 				if (req.headers['x-organization-id']) {
+					logger.info(`Using X-Organization-ID from headers: ${req.headers['x-organization-id']}`);
 						return req.headers['x-organization-id'];
 				}
 

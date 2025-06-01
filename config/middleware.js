@@ -38,15 +38,16 @@ const { validationResult } = require('express-validator');
 	 * List of routes that don't require authentication
 	 */
 	const PUBLIC_ROUTES = [
+		'/login',
 		'/api/login',
-		'/api/register',
-		'/api/refresh-token',
-		'/api/verify-email',
-		'/api/request-reset',
-		'/api/reset-password',
-		'/api/get-organization-settings',
-		'/api/get-news',
-		'/api/get-organization-id',
+		'/register',
+		'/refresh-token',
+		'/verify-email',
+		'/request-reset',
+		'/reset-password',
+		'/get-organization-settings',
+		'/get-news',
+		'/get-organization-id',
 		// Add any other public routes
 	];
 
