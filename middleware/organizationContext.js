@@ -1,6 +1,6 @@
 // middleware/organizationContext.js
-const logger = require('../config/logger');
-const { jsonResponse } = require('../utils/responseFormatter');
+const logger = require("../config/logger");
+const { jsonResponse } = require("../utils/responseFormatter");
 
 /**
  * Middleware to ensure organization context exists
@@ -12,7 +12,7 @@ function requireOrganization(required = true) {
 			return next();
 		}
 
-		if (!req.organizationId) {
+		if (!req.headers["x-organization-id"]) {
 			logger.warn(`Missing organization context for ${req.method} ${req.path}`);
 			return jsonResponse(res, false, null, "Organization context is required");
 		}
