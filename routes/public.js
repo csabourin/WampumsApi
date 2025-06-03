@@ -370,11 +370,11 @@ router.post(
 				await client.query("COMMIT");
 
 				// If the user type is 'animation', send an email to the admin(s)
-				if (userType === "animation") {
-					// Import this function only when needed
-					const { sendAdminVerificationEmail } = require("../utils");
-					await sendAdminVerificationEmail(organizationId, fullName, email);
-				}
+                                if (userType === "animation") {
+                                        // Import this function only when needed
+                                        const { sendAdminVerificationEmail } = require("../services/emailService");
+                                        await sendAdminVerificationEmail(organizationId, fullName, email);
+                                }
 
 				const message = isVerified
 					? "Registration successful. You can now log in."

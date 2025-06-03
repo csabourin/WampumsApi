@@ -2,7 +2,7 @@
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const logger = require('../config/logger');
-const determineOrganizationId = require('../utils')
+const { determineOrganizationId } = require('../utils');
 
 /**
  * Determine organization ID from multiple sources with consistent priority
