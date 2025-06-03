@@ -45,8 +45,8 @@ if (!JWT_SECRET) {
 
 // Handle pool errors
 pool.on('error', (err) => {
-	console.error('Unexpected error on idle client', err);
-	process.exit(-1);
+        console.error('Unexpected error on idle client', err);
+        // Log the error but allow the application to continue
 });
 
 // Set up translations (empty object by default, can be filled later)
