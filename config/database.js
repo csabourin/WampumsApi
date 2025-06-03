@@ -12,22 +12,20 @@ if (!process.env.DB_URL) {
  * Uses connection string from environment variables with fallback for local development
  */
 const pool = new Pool({
-	connectionString: process.env.DB_URL,
-	ssl: process.env.NODE_ENV === 'production' 
-		? { rejectUnauthorized: false } // For production environments
-		: false, // For development environment
-	max: 20, // Maximum number of clients in the pool
-	idleTimeoutMillis: 3000, // How long a client is allowed to remain idle before being closed
-	connectionTimeoutMillis: 2000, // How long to wait for a connection to become available
+        connectionString: process.env.DB_URL,
+        ssl: process.env.NODE_ENV === 'production'
+                ? { rejectUnauthorized: false }
+                : false,
+        max: 20,
+        idleTimeoutMillis: 30000, // Allow a minute of idle time before closing
+        connectionTimeoutMillis: 10000, // Wait up to 10s for a free connection
+        keepAlive: true,
 });
 
 // Listen for pool errors
 pool.on('error', (err, client) => {
-	logger.error(`Unexpected error on idle client: ${err.message}`);
-	// Don't exit in production for robustness
-	if (process.env.NODE_ENV !== 'production') {
-		process.exit(-1);
-	}
+        logger.error(`Unexpected error on idle client: ${err.message}`);
+        // In development just log the error; the pool will handle reconnection
 });
 
 // Test connection on initialization
@@ -36,13 +34,10 @@ pool.on('error', (err, client) => {
 		const client = await pool.connect();
 		logger.info('Database connection established successfully');
 		client.release();
-	} catch (err) {
-		logger.error(`Failed to connect to database: ${err.message}`);
-		// Don't exit in production for robustness
-		if (process.env.NODE_ENV !== 'production') {
-			process.exit(1);
-		}
-	}
+        } catch (err) {
+                logger.error(`Failed to connect to database: ${err.message}`);
+                // Do not exit; subsequent queries will attempt to reconnect
+        }
 })();
 
 /**
