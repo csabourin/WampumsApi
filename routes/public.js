@@ -39,7 +39,7 @@ router.get("/test-connection", async (req, res) => {
  * Get the organization ID based on hostname
  * GET /get_organization_id
  */
-router.get("/get_organization_id", async (req, res) => {
+router.get("/public/get_organization_id", async (req, res) => {
 	try {
 		const organizationId = await determineOrganizationId(req, res);
 
@@ -68,7 +68,7 @@ router.get("/get_organization_id", async (req, res) => {
  * Get organization settings
  * GET /get_organization_settings
  */
-router.get("/get_organization_settings", async (req, res) => {
+router.get("/api/organization-settings", async (req, res) => {
 	try {
 		// Get organization ID from hostname
 
@@ -78,7 +78,8 @@ router.get("/get_organization_settings", async (req, res) => {
 				res,
 				false,
 				null,
-				"Organization not found!!!!!!!!!!!!!!!" + req.headers["x-organization-id"],
+				"Organization not found!!!!!!!!!!!!!!!" +
+					req.headers["x-organization-id"],
 			);
 		}
 
@@ -161,9 +162,11 @@ router.get("/get_news", async (req, res) => {
  * User login
  * POST /login
  */
-router.post("/login", async (req, res) => {
+router.post("/public/login", async (req, res) => {
 	console.log("Login request headers:", req.headers);
 	console.log("Login request body:", req.body);
+	console.log("Login request content-type:", req.headers["content-type"]);
+
 	try {
 		const email = req.body.email ? req.body.email.toLowerCase() : "";
 		const password = req.body.password || "";
@@ -174,8 +177,8 @@ router.post("/login", async (req, res) => {
 		}
 
 		console.log(`Login attempt for email: ${email}`);
-
 		const client = await pool.connect();
+
 		try {
 			// Fetch user from the database and verify credentials
 			const result = await client.query(
@@ -187,6 +190,7 @@ router.post("/login", async (req, res) => {
 			);
 
 			const user = result.rows[0];
+
 			if (user) {
 				// Handle hash compatibility between $2y$ and $2b$
 				const hashedPassword = user.password.startsWith("$2y$")
@@ -205,12 +209,13 @@ router.post("/login", async (req, res) => {
 						);
 					}
 
-					// Generate JWT token
+					// Generate JWT token with consistent field names
 					const token = jwt.sign(
 						{
-							id: user.id,
-							role: user.role,
+							user_id: user.id, // Changed from 'id' to 'user_id'
+							user_role: user.role, // Changed from 'role' to 'user_role'
 							organizationId: organizationId,
+							full_name: user.full_name,
 						},
 						secretKey,
 						{ expiresIn: "72h" },
@@ -227,21 +232,27 @@ router.post("/login", async (req, res) => {
 						[user.id, email],
 					);
 
-					const response = {
+					// Create response object with consistent field names
+					const responseData = {
 						success: true,
 						message: "login_successful",
 						token,
-						id: user.id,
+						user_id: user.id, // Use user_id instead of id
 						user_role: user.role,
 						user_full_name: user.full_name,
 						is_verified: user.is_verified,
 					};
 
 					if (guardianParticipantsResult.rows.length > 0) {
-						response.guardian_participants = guardianParticipantsResult.rows;
+						responseData.guardian_participants =
+							guardianParticipantsResult.rows;
 					}
 
-					return jsonResponse(res, true, response);
+					console.log("Login success response:", responseData);
+
+					// Return the response directly instead of wrapping in jsonResponse
+					// This avoids the nested data structure
+					return res.status(200).json(responseData);
 				}
 			}
 
@@ -259,7 +270,6 @@ router.post("/login", async (req, res) => {
 		);
 	}
 });
-
 /**
  * Register new user
  * POST /register
@@ -370,11 +380,13 @@ router.post(
 				await client.query("COMMIT");
 
 				// If the user type is 'animation', send an email to the admin(s)
-                                if (userType === "animation") {
-                                        // Import this function only when needed
-                                        const { sendAdminVerificationEmail } = require("../services/emailService");
-                                        await sendAdminVerificationEmail(organizationId, fullName, email);
-                                }
+				if (userType === "animation") {
+					// Import this function only when needed
+					const {
+						sendAdminVerificationEmail,
+					} = require("../services/emailService");
+					await sendAdminVerificationEmail(organizationId, fullName, email);
+				}
 
 				const message = isVerified
 					? "Registration successful. You can now log in."
