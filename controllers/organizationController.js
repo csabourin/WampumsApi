@@ -2,6 +2,7 @@
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
 const { determineOrganizationId } = require('../utils');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -9,30 +10,14 @@ const logger = require('../config/logger');
  */
 exports.getOrganizationId = async (req, res) => {
         try {
-                // Extract hostname from request
-                const hostname = req.query.hostname || req.hostname;
-
-                const client = await pool.connect();
-                try {
-                        // Query the database for the organization ID based on hostname
-                        const result = await client.query(
-                                `SELECT organization_id FROM organization_domains 
-                                 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
-                                 LIMIT 1`,
-                                [hostname, hostname]
-                        );
-
-                        if (result.rows.length > 0) {
-                                const organizationId = result.rows[0].organization_id;
-                                logger.info(`Resolved organization ID ${organizationId} for hostname ${hostname}`);
-                                return jsonResponse(res, true, { organizationId });
-                        } else {
-                                logger.warn(`No organization found for hostname ${hostname}`);
-                                return jsonResponse(res, false, null, "No organization matches this domain");
-                        }
-                } finally {
-                        client.release();
+                // Return the organization ID from the request context
+                const organizationId = getOrganizationId(req);
+                
+                if (!organizationId) {
+                        return jsonResponse(res, false, null, "Organization context not found");
                 }
+
+                return jsonResponse(res, true, { organizationId });
         } catch (error) {
                 logger.error(`Error determining organization ID: ${error.message}`);
                 return jsonResponse(res, false, null, "Error determining organization ID");
@@ -151,7 +136,7 @@ exports.updateOrganizationSettings = async (req, res) => {
 exports.getOrganizationSettings = async (req, res) => {
         const client = await pool.connect();
         try {
-                const organizationId = req.query.organization_id || req.user?.organizationId;
+                const organizationId = getOrganizationId(req);
 
                 if (!organizationId) {
                         return jsonResponse(res, false, null, "Organization ID not found");
@@ -366,7 +351,7 @@ exports.createNews = async (req, res) => {
 exports.getNews = async (req, res) => {
         const client = await pool.connect();
         try {
-                const organizationId = req.query.organization_id || req.user?.organizationId;
+                const organizationId = getOrganizationId(req);
 
                 if (!organizationId) {
                         return jsonResponse(res, false, null, "Organization ID not found");

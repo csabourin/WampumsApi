@@ -244,7 +244,7 @@ exports.getAttendance = async (req, res) => {
 exports.getOrganizationSettings = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.user?.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization ID not found");
@@ -315,7 +315,7 @@ exports.getOrganizationId = async (req, res) => {
 exports.getNews = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = req.query.organization_id || req.user?.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization ID not found");

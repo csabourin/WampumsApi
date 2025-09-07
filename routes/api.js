@@ -17,14 +17,14 @@ const reunionController = require("../controllers/reunionController");
 const reportController = require("../controllers/reportController");
 const organizationController = require("../controllers/organizationController");
 const utilityController = require("../controllers/utilityController");
-const { requireOrganization } = require("../middleware/organizationContext");
+// Removed requireOrganization - organization context handled globally
+// const { requireOrganization } = require("../middleware/organizationContext");
 
 const router = express.Router();
 
 // Authentication routes
 router.post(
 	"/login",
-	requireOrganization(),
 	[
 		check("email").isEmail().normalizeEmail(),
 		check("password").notEmpty(),
@@ -72,7 +72,7 @@ router.post("/refresh-token", authController.refreshToken);
 router.post("/logout", authController.logout);
 
 // Users and permissions
-router.get("/users", requireOrganization(), authController.getUsers);
+router.get("/users", authController.getUsers);
 router.post("/check-permission", authController.checkPermission);
 router.post(
 	"/approve-user",
@@ -93,7 +93,6 @@ router.post(
 // Participant routes
 router.get(
 	"/participants",
-	requireOrganization(),
 	participantController.getParticipants,
 );
 router.get("/participant/:id", participantController.getParticipant);

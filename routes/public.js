@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { pool } = require("../config/database");
 const { determineOrganizationId } = require("../utils");
+const { getOrganizationId } = require('../utils/organizationContext');
 
 const router = express.Router();
 
@@ -72,14 +73,13 @@ router.get("/public/organization-settings", async (req, res) => {
 	try {
 		// Get organization ID from hostname
 
-		const organizationId = req.headers["x-organization-id"];
+		const organizationId = getOrganizationId(req);
 		if (!organizationId) {
 			return jsonResponse(
 				res,
 				false,
 				null,
-				"Organization not found!!!!!!!!!!!!!!!" +
-					req.headers["x-organization-id"],
+				"Organization not found: " + organizationId,
 			);
 		}
 
@@ -170,7 +170,7 @@ router.post("/public/login", async (req, res) => {
 	try {
 		const email = req.body.email ? req.body.email.toLowerCase() : "";
 		const password = req.body.password || "";
-		const organizationId = req.headers["x-organization-id"];
+		const organizationId = getOrganizationId(req);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization ID is required");

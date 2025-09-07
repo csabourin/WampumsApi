@@ -21,6 +21,7 @@ const {
 	refreshAccessToken,
 	revokeUserTokens 
 } = require('../services/authService');
+const { getOrganizationId } = require('../utils/organizationContext');
 
 /**
  * Handle user login
@@ -29,7 +30,7 @@ exports.login = async (req, res) => {
 	try {
 		const email = req.body.email?.toLowerCase() || "";
 		const password = req.body.password || "";
-		const organizationId = req.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		if (!organizationId) {
 			return jsonResponse(res, false, null, "Organization ID is required");
@@ -185,7 +186,7 @@ exports.register = async (req, res) => {
 		const password = data.password;
 		const accountCreationPassword = data.account_creation_password;
 		const userType = data.user_type;
-		const organizationId = req.organizationId;
+		const organizationId = getOrganizationId(req);
 
 		// Fetch the account creation password from the organization_settings table
 		const accountPasswordResult = await client.query(
@@ -545,7 +546,7 @@ exports.approveUser = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { user_id } = req.body;
-		const organizationId = await getOrganizationId(req);
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`UPDATE users 
@@ -580,7 +581,7 @@ exports.updateUserRole = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { user_id, new_role } = req.body;
-		const organizationId = await getOrganizationId(req);
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`UPDATE user_organizations 
@@ -609,7 +610,7 @@ exports.updateUserRole = async (req, res) => {
 exports.getUsers = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = await getOrganizationId(req);
+		const organizationId = getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT u.id, u.email, u.is_verified, uo.role, u.full_name, u.created_at

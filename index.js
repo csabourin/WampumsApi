@@ -157,6 +157,7 @@ app.use(async (req, res, next) => {
 app.use("/", publicRoutes);
 
 // Apply authentication middleware for protected routes
+// Organization context is automatically handled by middleware in index.js
 app.use("/api", tokenMiddleware, apiRoutes);
 
 // Global error handling
