@@ -1,52 +1,54 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { pool } = require(`./config/database`);
-const sendgrid = require('@sendgrid/mail');
-const winston = require('winston');
-const { jsonResponse } = require('./utils/responseFormatter');
+const sendgrid = require("@sendgrid/mail");
+const winston = require("winston");
+const { jsonResponse } = require("./utils/responseFormatter");
 
 // Load environment variables
 const DB_URL = process.env.DB_URL;
 const JWT_SECRET = process.env.JWT_SECRET_KEY;
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 // Initialize logger
 const logger = winston.createLogger({
-	level: NODE_ENV === 'production' ? 'info' : 'debug',
+	level: NODE_ENV === "production" ? "info" : "debug",
 	format: winston.format.combine(
 		winston.format.timestamp(),
-		winston.format.json()
+		winston.format.json(),
 	),
 	transports: [
-		new winston.transports.File({ filename: 'error.log', level: 'error' }),
-		new winston.transports.File({ filename: 'combined.log' })
-	]
+		new winston.transports.File({ filename: "error.log", level: "error" }),
+		new winston.transports.File({ filename: "combined.log" }),
+	],
 });
 
 // Add console transport in non-production environments
-if (NODE_ENV !== 'production') {
-	logger.add(new winston.transports.Console({
-		format: winston.format.combine(
-			winston.format.colorize(),
-			winston.format.simple()
-		)
-	}))
+if (NODE_ENV !== "production") {
+	logger.add(
+		new winston.transports.Console({
+			format: winston.format.combine(
+				winston.format.colorize(),
+				winston.format.simple(),
+			),
+		}),
+	);
 }
 
 // Validate critical environment variables
 if (!DB_URL) {
-	console.error('Missing required environment variable: DB_URL');
+	console.error("Missing required environment variable: DB_URL");
 }
 
 if (!JWT_SECRET) {
-	console.error('Missing required environment variable: JWT_SECRET_KEY');
+	console.error("Missing required environment variable: JWT_SECRET_KEY");
 }
 
 // Handle pool errors
-pool.on('error', (err) => {
-        console.error('Unexpected error on idle client', err);
-        // Log the error but allow the application to continue
+pool.on("error", (err) => {
+	console.error("Unexpected error on idle client", err);
+	// Log the error but allow the application to continue
 });
 
 // Set up translations (empty object by default, can be filled later)
@@ -60,13 +62,13 @@ let translations = {};
 async function validateJwtToken(jwtToken) {
 	try {
 		if (!jwtToken) {
-			throw new Error('No JWT token provided');
+			throw new Error("No JWT token provided");
 		}
 
 		const decodedToken = jwt.verify(jwtToken, JWT_SECRET);
 
 		if (!decodedToken.id) {
-			throw new Error('JWT token is missing user information');
+			throw new Error("JWT token is missing user information");
 		}
 
 		return decodedToken;
@@ -88,7 +90,7 @@ function translate(key) {
  * Sets the current language for translations
  * @param {string} lang - The language code (e.g., 'fr', 'en')
  */
-function setLanguage(lang = 'fr') {
+function setLanguage(lang = "fr") {
 	loadTranslations(lang);
 }
 
@@ -104,7 +106,7 @@ async function userHasAccessToParticipant(userId, participantId) {
 		// Check if the user is directly linked to the participant
 		let result = await client.query(
 			`SELECT 1 FROM user_participants WHERE user_id = $1 AND participant_id = $2`,
-			[userId, participantId]
+			[userId, participantId],
 		);
 
 		if (result.rowCount > 0) {
@@ -116,12 +118,12 @@ async function userHasAccessToParticipant(userId, participantId) {
 			`SELECT 1 FROM user_organizations uo
 			 JOIN participant_organizations po ON uo.organization_id = po.organization_id
 			 WHERE uo.user_id = $1 AND po.participant_id = $2 AND uo.role IN ('animation', 'admin')`,
-			[userId, participantId]
+			[userId, participantId],
 		);
 
 		return result.rowCount > 0;
 	} catch (error) {
-		console.error('Error checking participant access:', error);
+		console.error("Error checking participant access:", error);
 		return false;
 	} finally {
 		client.release();
@@ -151,10 +153,8 @@ function calculateAge(dateOfBirth) {
  * @returns {string} - The sanitized input
  */
 function sanitizeInput(input) {
-	if (typeof input !== 'string') return input;
-	return input
-		.replace(/<[^>]*>/g, '')
-		.trim();
+	if (typeof input !== "string") return input;
+	return input.replace(/<[^>]*>/g, "").trim();
 }
 
 /**
@@ -164,7 +164,11 @@ function sanitizeInput(input) {
  * @param {string} animatorEmail - The animator's email
  * @returns {Promise<void>}
  */
-async function sendAdminVerificationEmail(organizationId, animatorName, animatorEmail) {
+async function sendAdminVerificationEmail(
+	organizationId,
+	animatorName,
+	animatorEmail,
+) {
 	const client = await pool.connect();
 	try {
 		// Fetch admin emails
@@ -172,12 +176,14 @@ async function sendAdminVerificationEmail(organizationId, animatorName, animator
 			`SELECT u.email FROM users u
 			 JOIN user_organizations uo ON u.id = uo.user_id
 			 WHERE uo.organization_id = $1 AND uo.role = 'admin'`,
-			[organizationId]
+			[organizationId],
 		);
-		const adminEmails = result.rows.map(row => row.email);
+		const adminEmails = result.rows.map((row) => row.email);
 
 		if (adminEmails.length === 0) {
-			console.error(`No admin emails found for organization ID: ${organizationId}`);
+			console.error(
+				`No admin emails found for organization ID: ${organizationId}`,
+			);
 			return;
 		}
 
@@ -186,9 +192,9 @@ async function sendAdminVerificationEmail(organizationId, animatorName, animator
 			`SELECT setting_value->>'name' AS org_name
 			 FROM organization_settings
 			 WHERE organization_id = $1 AND setting_key = 'organization_info'`,
-			[organizationId]
+			[organizationId],
 		);
-		const orgName = orgResult.rows[0]?.org_name || 'Wampums.app';
+		const orgName = orgResult.rows[0]?.org_name || "Wampums.app";
 
 		const subject = `New animator registration for ${orgName}`;
 		const message = `A new animator has registered for ${orgName}.\n\nName: ${animatorName}\nEmail: ${animatorEmail}\n\nPlease log in to approve or reject this registration.`;
@@ -200,9 +206,9 @@ async function sendAdminVerificationEmail(organizationId, animatorName, animator
 				try {
 					await sendgrid.send({
 						to: adminEmail,
-						from: 'noreply@wampums.app',
+						from: "noreply@wampums.app",
 						subject,
-						text: message
+						text: message,
 					});
 					console.log(`Admin verification email sent to ${adminEmail}`);
 				} catch (error) {
@@ -210,13 +216,13 @@ async function sendAdminVerificationEmail(organizationId, animatorName, animator
 				}
 			}
 		} else {
-			console.log('SendGrid API key not set, skipping email sending');
-			console.log(`Would send to: ${adminEmails.join(', ')}`);
+			console.log("SendGrid API key not set, skipping email sending");
+			console.log(`Would send to: ${adminEmails.join(", ")}`);
 			console.log(`Subject: ${subject}`);
 			console.log(`Message: ${message}`);
 		}
 	} catch (error) {
-		console.error('Error sending admin verification email:', error);
+		console.error("Error sending admin verification email:", error);
 	} finally {
 		client.release();
 	}
@@ -230,11 +236,13 @@ function loadTranslations(lang) {
 	try {
 		translations = require(`../lang/${lang}.json`);
 	} catch (e) {
-		console.warn(`Could not load translations for language ${lang}, falling back to default`);
+		console.warn(
+			`Could not load translations for language ${lang}, falling back to default`,
+		);
 		try {
-			translations = require('../lang/fr.json');
+			translations = require("../lang/fr.json");
 		} catch (e) {
-			console.error('Could not load default translations');
+			console.error("Could not load default translations");
 			translations = {};
 		}
 	}
@@ -254,8 +262,8 @@ function loadTranslations(lang) {
 // 	const client = await pool.connect();
 // 	try {
 // 		const result = await client.query(
-// 			`SELECT organization_id FROM organization_domains 
-// 			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+// 			`SELECT organization_id FROM organization_domains
+// 			 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%')
 // 			 LIMIT 1`,
 // 			[currentHost, currentHost]
 // 		);
@@ -275,12 +283,12 @@ function loadTranslations(lang) {
  * @returns {string} - 't' for true, 'f' for false
  */
 function toBool(value) {
-	if (typeof value === 'boolean') return value ? 't' : 'f';
-	if (typeof value === 'string') {
+	if (typeof value === "boolean") return value ? "t" : "f";
+	if (typeof value === "string") {
 		const lower = value.toLowerCase();
-		return ['true', '1', 'yes', 'on'].includes(lower) ? 't' : 'f';
+		return ["true", "1", "yes", "on"].includes(lower) ? "t" : "f";
 	}
-	return Number(value) ? 't' : 'f';
+	return Number(value) ? "t" : "f";
 }
 
 /**
@@ -289,64 +297,63 @@ function toBool(value) {
  * @returns {Promise<number|null>} - The organization ID or null if not found
  */
 exports.determineOrganizationId = async (req) => {
-		try {
-				// First, try to get organization ID from headers
-				if (req.headers['x-organization-id']) {
-					logger.info(`Using X-Organization-ID from headers: ${req.headers['x-organization-id']}`);
-						return req.headers['x-organization-id'];
-				}
-
-				// Then try to get organization ID from JWT token
-				if (req.user && req.user.organizationId) {
-						return req.user.organizationId;
-				}
-
-				if (req.organizationId) {
-						return req.organizationId;
-				}
-
-				// Then check the authorization header directly if middleware hasn't processed it
-				const authHeader = req.headers.authorization;
-				if (authHeader && authHeader.startsWith('Bearer ')) {
-						try {
-								const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-								const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-								if (decoded && decoded.organizationId) {
-										// Set on request for future middleware to use
-										req.organizationId = decoded.organizationId;
-										return decoded.organizationId;
-								}
-						} catch (tokenError) {
-								// Token verification failed, continue to hostname method
-								logger.warn(`JWT verification failed in utils: ${tokenError.message}`);
-						}
-				}
-
-				// Fallback to hostname lookup if no valid JWT
-				const hostname = req.query.hostname || req.hostname;
-				const client = await pool.connect();
-				try {
-						// Query the database for the organization ID based on hostname
-						const result = await client.query(
-								`SELECT organization_id FROM organization_domains 
-								 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
-								 LIMIT 1`,
-								[hostname, hostname]
-						);
-						if (result.rows.length > 0) {
-								const organizationId = result.rows[0].organization_id;
-								// Set on request for future middleware to use
-								req.organizationId = organizationId;
-								return organizationId;
-						} else {
-								return null;
-						}
-				} finally {
-						client.release();
-				}
-		} catch (error) {
-				logger.error(`Error determining organization ID: ${error.message}`);
-				return null;
+	try {
+		// First, try to get organization ID from headers
+		if (req.headers["x-organization-id"]) {
+			logger.info(
+				`Using X-Organization-ID from headers: ${req.headers["x-organization-id"]}`,
+			);
+			return parseInt(req.headers["x-organization-id"], 10); // ← Convert to integer
 		}
+
+		// Then try to get organization ID from JWT token
+		if (req.user && req.user.organizationId) {
+			return parseInt(req.user.organizationId, 10); // ← Convert to integer
+		}
+
+		if (req.organizationId) {
+			return parseInt(req.organizationId, 10); // ← Convert to integer
+		}
+
+		// Then check the authorization header directly if middleware hasn't processed it
+		const authHeader = req.headers.authorization;
+		if (authHeader && authHeader.startsWith("Bearer ")) {
+			try {
+				const token = authHeader.substring(7);
+				const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+				if (decoded && decoded.organizationId) {
+					const orgId = parseInt(decoded.organizationId, 10); // ← Convert to integer
+					req.organizationId = orgId;
+					return orgId;
+				}
+			} catch (tokenError) {
+				logger.warn(`JWT verification failed in utils: ${tokenError.message}`);
+			}
+		}
+
+		// Fallback to hostname lookup
+		const hostname = req.query.hostname || req.hostname;
+		const client = await pool.connect();
+		try {
+			const result = await client.query(
+				`SELECT organization_id FROM organization_domains 
+				 WHERE domain = $1 OR $2 LIKE REPLACE(domain, '*', '%') 
+				 LIMIT 1`,
+				[hostname, hostname],
+			);
+			if (result.rows.length > 0) {
+				const organizationId = parseInt(result.rows[0].organization_id, 10); // ← Convert to integer
+				req.organizationId = organizationId;
+				return organizationId;
+			} else {
+				return null;
+			}
+		} finally {
+			client.release();
+		}
+	} catch (error) {
+		logger.error(`Error determining organization ID: ${error.message}`);
+		return null;
+	}
 };
