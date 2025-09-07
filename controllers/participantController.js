@@ -12,6 +12,10 @@ exports.getParticipants = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const organizationId = await determineOrganizationId(req);
+		if (!organizationId) {
+			logger.warn("Organization ID is missing or invalid.");
+			return jsonResponse(res, false, null, "Invalid organization context");
+		}
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
 			 FROM participants p
@@ -20,6 +24,10 @@ exports.getParticipants = async (req, res) => {
 			 ORDER BY p.last_name, p.first_name`,
 			[organizationId]
 		);
+		if (result.rows.length === 0) {
+			logger.info(`No participants found for organization ID: ${organizationId}`);
+			return jsonResponse(res, true, [], "No participants found");
+		}
 		return jsonResponse(res, true, result.rows);
 	} catch (error) {
 		logger.error(`Error fetching participants: ${error.message}`);
@@ -37,6 +45,14 @@ exports.getParticipant = async (req, res) => {
 	try {
 		const participantId = req.params.id;
 		const organizationId = await determineOrganizationId(req);
+		if (!organizationId) {
+			logger.warn("Organization ID is missing or invalid.");
+			return jsonResponse(res, false, null, "Invalid organization context");
+		}
+		if (!participantId) {
+			logger.warn("Participant ID is missing.");
+			return jsonResponse(res, false, null, "Participant ID is required");
+		}
 		const result = await client.query(
 			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
 			 FROM participants p
@@ -45,6 +61,7 @@ exports.getParticipant = async (req, res) => {
 			[participantId, organizationId]
 		);
 		if (result.rows.length === 0) {
+			logger.info(`Participant not found for ID: ${participantId} in organization ID: ${organizationId}`);
 			return jsonResponse(res, false, null, "Participant not found");
 		}
 		return jsonResponse(res, true, result.rows[0]);
