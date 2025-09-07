@@ -68,7 +68,7 @@ router.get("/public/get_organization_id", async (req, res) => {
  * Get organization settings
  * GET /get_organization_settings
  */
-router.get("/api/organization-settings", async (req, res) => {
+router.get("/public/organization-settings", async (req, res) => {
 	try {
 		// Get organization ID from hostname
 
@@ -125,7 +125,7 @@ router.get("/api/organization-settings", async (req, res) => {
  * Get news for the organization
  * GET /get_news
  */
-router.get("/get_news", async (req, res) => {
+router.get("/public/get_news", async (req, res) => {
 	try {
 		// Get organization ID from hostname
 		const organizationId = await determineOrganizationId(req, res);
@@ -275,7 +275,7 @@ router.post("/public/login", async (req, res) => {
  * POST /register
  */
 router.post(
-	"/register",
+	"/public/register",
 	[
 		check("email").isEmail().normalizeEmail(),
 		check("password").isLength({ min: 8 }),
@@ -415,9 +415,9 @@ router.post(
 
 /**
  * Initial data for frontend
- * GET /initial-data
+ * GET /public/initial-data
  */
-router.get("/initial-data", (req, res) => {
+router.get("/public/initial-data", (req, res) => {
 	const isLoggedIn = req.session?.user_id !== undefined;
 	const userRole = req.session?.user_role || null;
 	const lang = req.session?.lang || "fr";
@@ -436,7 +436,7 @@ router.get("/initial-data", (req, res) => {
  * POST /verify-email
  */
 router.post(
-	"/verify-email",
+	"/public/verify-email",
 	[check("verification_token").notEmpty()],
 	async (req, res) => {
 		const errors = validationResult(req);
@@ -561,7 +561,7 @@ router.post(
  * POST /request_reset
  */
 router.post(
-	"/request_reset",
+	"/public/request_reset",
 	[check("email").isEmail().normalizeEmail()],
 	async (req, res) => {
 		const errors = validationResult(req);
@@ -639,7 +639,7 @@ router.post(
  * POST /reset_password
  */
 router.post(
-	"/reset_password",
+	"/public/reset_password",
 	[check("reset_token").notEmpty(), check("new_password").isLength({ min: 8 })],
 	async (req, res) => {
 		const errors = validationResult(req);
@@ -741,7 +741,7 @@ router.post(
  * Authenticate with API key
  * POST /authenticate
  */
-router.post("/authenticate", async (req, res) => {
+router.post("/public/authenticate", async (req, res) => {
 	const apiKey = req.body.apiKey;
 
 	if (!apiKey) {

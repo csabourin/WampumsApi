@@ -72,13 +72,15 @@ exports.login = async (req, res) => {
 
 			// Generate JWT token with clear expiration
 			const token = jwt.sign(
-				{
-					id: user.id,
-					role: user.role,
-					organizationId: organizationId,
-					exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-				},
-				process.env.JWT_SECRET_KEY
+					{
+							user_id: user.id,
+							user_role: user.role,
+							organizationId: organizationId
+					},
+					process.env.JWT_SECRET_KEY,
+					{
+							expiresIn: '24h'  // Let the library handle exp calculation
+					}
 			);
 
 			// Fetch unlinked guardian participants

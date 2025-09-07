@@ -4,7 +4,7 @@ const logger = require('./logger');
 
 // Load environment variables if not already loaded
 if (!process.env.DB_URL) {
-	require('dotenv').config();
+        require('dotenv').config();
 }
 
 /**
@@ -12,7 +12,7 @@ if (!process.env.DB_URL) {
  * Uses connection string from environment variables with fallback for local development
  */
 const pool = new Pool({
-        connectionString: process.env.DB_URL,
+        connectionString: process.env.DB_URL || process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production'
                 ? { rejectUnauthorized: false }
                 : false,
@@ -30,10 +30,10 @@ pool.on('error', (err, client) => {
 
 // Test connection on initialization
 (async () => {
-	try {
-		const client = await pool.connect();
-		logger.info('Database connection established successfully');
-		client.release();
+        try {
+                const client = await pool.connect();
+                logger.info('Database connection established successfully');
+                client.release();
         } catch (err) {
                 logger.error(`Failed to connect to database: ${err.message}`);
                 // Do not exit; subsequent queries will attempt to reconnect
@@ -45,12 +45,12 @@ pool.on('error', (err, client) => {
  * @returns {Promise<PoolClient>} Database client connection
  */
 const getClient = async () => {
-	try {
-		return await pool.connect();
-	} catch (error) {
-		logger.error(`Error getting database client: ${error.message}`);
-		throw error;
-	}
+        try {
+                return await pool.connect();
+        } catch (error) {
+                logger.error(`Error getting database client: ${error.message}`);
+                throw error;
+        }
 };
 
 /**
@@ -60,12 +60,12 @@ const getClient = async () => {
  * @returns {Promise<QueryResult>} Query result
  */
 const query = async (text, params) => {
-	const client = await pool.connect();
-	try {
-		return await client.query(text, params);
-	} finally {
-		client.release();
-	}
+        const client = await pool.connect();
+        try {
+                return await client.query(text, params);
+        } finally {
+                client.release();
+        }
 };
 
 /**
@@ -74,23 +74,23 @@ const query = async (text, params) => {
  * @returns {Promise<any>} Result from the callback function
  */
 const transaction = async (callback) => {
-	const client = await pool.connect();
-	try {
-		await client.query('BEGIN');
-		const result = await callback(client);
-		await client.query('COMMIT');
-		return result;
-	} catch (error) {
-		await client.query('ROLLBACK');
-		throw error;
-	} finally {
-		client.release();
-	}
+        const client = await pool.connect();
+        try {
+                await client.query('BEGIN');
+                const result = await callback(client);
+                await client.query('COMMIT');
+                return result;
+        } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
+        } finally {
+                client.release();
+        }
 };
 
 module.exports = {
-	pool,
-	getClient,
-	query,
-	transaction
+        pool,
+        getClient,
+        query,
+        transaction
 };

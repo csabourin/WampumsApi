@@ -11,6 +11,7 @@ const logger = require("./config/logger");
 const { errorHandler } = require("./config/middleware");
 
 // Import middleware
+const universalBodyParser = require("./middleware/universalBodyParser");
 const {
   extractOrganizationFromJWT,
   tokenMiddleware,
@@ -23,7 +24,7 @@ const apiRoutes = require("./routes/api");
 
 // Initialize Express app
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 // Set trust proxy for handling reverse proxies
 app.set("trust proxy", "loopback" || "linklocal");
@@ -95,6 +96,9 @@ app.use(
     max: 100, // 100 requests per windowMs
   }),
 );
+
+// Active ton middleware universel
+app.use(universalBodyParser());
 
 const db = require("./config/database");
 const pool = db.pool;
