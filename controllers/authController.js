@@ -545,7 +545,7 @@ exports.approveUser = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { user_id } = req.body;
-		const organizationId = getOrganizationId(req);
+		const organizationId = await getOrganizationId(req);
 
 		const result = await client.query(
 			`UPDATE users 
@@ -580,7 +580,7 @@ exports.updateUserRole = async (req, res) => {
 	const client = await pool.connect();
 	try {
 		const { user_id, new_role } = req.body;
-		const organizationId = getOrganizationId(req);
+		const organizationId = await getOrganizationId(req);
 
 		const result = await client.query(
 			`UPDATE user_organizations 
@@ -609,7 +609,7 @@ exports.updateUserRole = async (req, res) => {
 exports.getUsers = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = getOrganizationId(req);
+		const organizationId = await getOrganizationId(req);
 
 		const result = await client.query(
 			`SELECT u.id, u.email, u.is_verified, uo.role, u.full_name, u.created_at

@@ -1,92 +1,135 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>API Test Client</title>
-  <style>
-    body { font-family: Arial; max-width: 800px; margin: 20px auto; padding: 20px; }
-    .response { background: #f0f0f0; padding: 10px; margin: 10px 0; white-space: pre-wrap; }
-    .card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; }
-    button { margin: 5px; padding: 5px 10px; }
-  </style>
-</head>
-<body>
-  <h1>API Test Client</h1>
-  
-  <div class="card">
-    <h3>Login</h3>
-    <input id="loginEmail" placeholder="Email" value="test@example.com"><br>
-    <input id="loginPassword" type="password" placeholder="Password" value="password123"><br>
-    <button onclick="login()">Login</button>
-    <div id="loginResponse" class="response"></div>
-  </div>
-
-  <div class="card">
-    <h3>Register</h3>
-    <input id="regEmail" placeholder="Email"><br>
-    <input id="regPassword" type="password" placeholder="Password"><br>
-    <input id="regName" placeholder="Full Name"><br>
-    <input id="regCreationPass" placeholder="Account Creation Password"><br>
-    <select id="regType">
-      <option value="parent">Parent</option>
-      <option value="animation">Animator</option>
-      <option value="admin">Admin</option>
-    </select><br>
-    <button onclick="register()">Register</button>
-    <div id="registerResponse" class="response"></div>
-  </div>
-
-  <div class="card">
-    <h3>Test Protected Route</h3>
-    <button onclick="testProtected()">Get Users List</button>
-    <div id="protectedResponse" class="response"></div>
-  </div>
-
-  <script>
-    let token = '';
-    const BASE_URL = window.location.origin;
-
-    async function login() {
-      const response = await fetch(`${BASE_URL}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: document.getElementById('loginEmail').value,
-          password: document.getElementById('loginPassword').value
-        })
-      });
-      const data = await response.json();
-      document.getElementById('loginResponse').textContent = JSON.stringify(data, null, 2);
-      if (data.data?.token) {
-        token = data.data.token;
+  <head>
+    <title>API Test Client</title>
+    <style>
+      body {
+        font-family: Arial;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
       }
-    }
+      .response {
+        background: #f0f0f0;
+        padding: 10px;
+        margin: 10px 0;
+        white-space: pre-wrap;
+      }
+      .card {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      button {
+        margin: 5px;
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>API Test Client</h1>
 
-    async function register() {
-      const response = await fetch(`${BASE_URL}/api/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: document.getElementById('regEmail').value,
-          password: document.getElementById('regPassword').value,
-          full_name: document.getElementById('regName').value,
-          account_creation_password: document.getElementById('regCreationPass').value,
-          user_type: document.getElementById('regType').value
-        })
-      });
-      const data = await response.json();
-      document.getElementById('registerResponse').textContent = JSON.stringify(data, null, 2);
-    }
+    <div class="card">
+      <h3>Login</h3>
+      <input
+        id="loginEmail"
+        placeholder="Email"
+        value="test@example.com"
+      /><br />
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+        value="password123"
+      /><br />
+      <button onclick="login()">Login</button>
+      <div id="loginResponse" class="response"></div>
+    </div>
 
-    async function testProtected() {
-      const response = await fetch(`${BASE_URL}/api/users?organization_id=1`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    <div class="card">
+      <h3>Register</h3>
+      <input id="regEmail" placeholder="Email" /><br />
+      <input id="regPassword" type="password" placeholder="Password" /><br />
+      <input id="regName" placeholder="Full Name" /><br />
+      <input
+        id="regCreationPass"
+        placeholder="Account Creation Password"
+      /><br />
+      <select id="regType">
+        <option value="parent">Parent</option>
+        <option value="animation">Animator</option>
+        <option value="admin">Admin</option></select
+      ><br />
+      <button onclick="register()">Register</button>
+      <div id="registerResponse" class="response"></div>
+    </div>
+
+    <div class="card">
+      <h3>Test Protected Route</h3>
+      <button onclick="testProtected()">Get Users List</button>
+      <div id="protectedResponse" class="response"></div>
+    </div>
+
+    <script>
+      let token = "";
+      const BASE_URL = window.location.origin;
+
+      async function login() {
+        const response = await fetch(`${BASE_URL}/api/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-organization-id": "1",
+          },
+          body: JSON.stringify({
+            email: document.getElementById("loginEmail").value,
+            password: document.getElementById("loginPassword").value,
+          }),
+        });
+        const data = await response.json();
+        document.getElementById("loginResponse").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+        if (data.data?.token) {
+          token = data.data.token;
         }
-      });
-      const data = await response.json();
-      document.getElementById('protectedResponse').textContent = JSON.stringify(data, null, 2);
-    }
-  </script>
-</body>
+      }
+
+      async function register() {
+        const response = await fetch(`${BASE_URL}/api/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: document.getElementById("regEmail").value,
+            password: document.getElementById("regPassword").value,
+            full_name: document.getElementById("regName").value,
+            account_creation_password:
+              document.getElementById("regCreationPass").value,
+            user_type: document.getElementById("regType").value,
+          }),
+        });
+        const data = await response.json();
+        document.getElementById("registerResponse").textContent =
+          JSON.stringify(data, null, 2);
+      }
+
+      async function testProtected() {
+        const response = await fetch(
+          `${BASE_URL}/api/users?organization_id=1`,
+          {
+            headers: {
+              "x-organization-id": "1",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = await response.json();
+        document.getElementById("protectedResponse").textContent =
+          JSON.stringify(data, null, 2);
+      }
+    </script>
+  </body>
 </html>
