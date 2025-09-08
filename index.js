@@ -115,17 +115,8 @@ pool.query("SELECT NOW()", (err, res) => {
   }
 });
 
-// Set up shared response format
-app.use((req, res, next) => {
-  res.jsonResponse = (success, data = null, message = "") => {
-    res.json({
-      success,
-      data,
-      message,
-    });
-  };
-  next();
-});
+// Note: Response formatting handled by utils/responseFormatter.js
+// Removed duplicate middleware to prevent double data nesting
 
 // Redirect HTTP to HTTPS in production
 app.use((req, res, next) => {

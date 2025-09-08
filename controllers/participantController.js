@@ -3,6 +3,7 @@
 const { pool } = require('../config/database');
 const { jsonResponse } = require('../utils/responseFormatter');
 const { determineOrganizationId } = require('../utils.js');
+const { getOrganizationId } = require('../utils/organizationContext');
 const logger = require('../config/logger');
 
 /**
@@ -11,17 +12,27 @@ const logger = require('../config/logger');
 exports.getParticipants = async (req, res) => {
 	const client = await pool.connect();
 	try {
-		const organizationId = await determineOrganizationId(req);
+		const organizationId = getOrganizationId(req);
 		if (!organizationId) {
 			logger.warn("Organization ID is missing or invalid.");
 			return jsonResponse(res, false, null, "Invalid organization context");
 		}
 		const result = await client.query(
-			`SELECT p.id, p.first_name, p.last_name, p.date_naissance
+			`SELECT 
+				p.id, 
+				p.first_name, 
+				p.last_name, 
+				p.date_naissance,
+				pg.group_id,
+				g.name AS group_name,
+				pg.is_leader,
+				pg.is_second_leader
 			 FROM participants p
 			 JOIN participant_organizations po ON p.id = po.participant_id
+			 LEFT JOIN participant_groups pg ON p.id = pg.participant_id AND pg.organization_id = $1
+			 LEFT JOIN groups g ON pg.group_id = g.id AND g.organization_id = $1
 			 WHERE po.organization_id = $1
-			 ORDER BY p.last_name, p.first_name`,
+			 ORDER BY g.name NULLS LAST, p.last_name, p.first_name`,
 			[organizationId]
 		);
 		if (result.rows.length === 0) {
