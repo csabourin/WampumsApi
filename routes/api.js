@@ -213,10 +213,10 @@ router.post(
 router.post(
 	"/update-points",
 	[
-		check("type").isIn(["group", "individual"]),
-		check("id").notEmpty(),
-		check("points").isNumeric(),
-		check("timestamp").isISO8601(),
+		check("*.type").isIn(["group", "individual"]),
+		check("*.id").notEmpty(),
+		check("*.points").isNumeric(),
+		check("*.timestamp").isISO8601(),
 		validateRequest,
 	],
 	groupController.updatePoints,
