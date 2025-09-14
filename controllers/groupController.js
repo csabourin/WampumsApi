@@ -292,19 +292,33 @@ exports.updatePoints = async (req, res) => {
                                         );
                                 }
 
-                                // Get total points for the group
-                                const groupTotalResult = await client.query(
-                                        `SELECT COALESCE(SUM(value), 0) as total_points 
-                                         FROM points 
-                                         WHERE group_id = $1 AND participant_id IS NULL AND organization_id = $2`,
+                                // Get total points for all members combined
+                                const memberTotalsResult = await client.query(
+                                        `SELECT
+                                                p.id as participant_id,
+                                                COALESCE(SUM(pt.value), 0) as individual_points
+                                         FROM participants p
+                                         JOIN participant_groups pg ON p.id = pg.participant_id
+                                         LEFT JOIN points pt ON p.id = pt.participant_id AND pt.organization_id = $2
+                                         WHERE pg.group_id = $1 AND pg.organization_id = $2
+                                         GROUP BY p.id`,
                                         [update.id, organizationId]
+                                );
+
+                                // Calculate total group points (sum of all member points)
+                                const totalGroupPoints = memberTotalsResult.rows.reduce(
+                                        (sum, member) => sum + parseInt(member.individual_points), 0
                                 );
 
                                 responses.push({
                                         type: "group",
                                         id: update.id,
-                                        totalPoints: groupTotalResult.rows[0].total_points,
+                                        totalPoints: totalGroupPoints,
                                         memberIds: membersResult.rows.map((row) => row.id),
+                                        memberTotals: memberTotalsResult.rows.map(member => ({
+                                                participantId: member.participant_id,
+                                                points: parseInt(member.individual_points)
+                                        }))
                                 });
                         } else {
                                 // Add points to an individual
