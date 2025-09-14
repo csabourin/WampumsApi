@@ -1,6 +1,6 @@
 // routes/api.js
 const express = require("express");
-const { check } = require("express-validator");
+const { check, body } = require("express-validator");
 const { validateRequest, roleMiddleware } = require("../config/middleware");
 
 // Controllers
@@ -213,11 +213,11 @@ router.post(
 router.post(
         "/update-points",
         [
-                check().isArray().withMessage("Request body must be an array"),
-                check("*.type").isIn(["group", "individual"]).withMessage("Type must be 'group' or 'individual'"),
-                check("*.id").notEmpty().withMessage("ID is required"),
-                check("*.points").isNumeric().withMessage("Points must be numeric"),
-                check("*.timestamp").isISO8601().withMessage("Timestamp must be valid ISO8601 format"),
+                body().isArray().withMessage("Request body must be an array"),
+                body("*.type").isIn(["group", "individual"]).withMessage("Type must be 'group' or 'individual'"),
+                body("*.id").notEmpty().withMessage("ID is required"),
+                body("*.points").isNumeric().withMessage("Points must be numeric"),
+                body("*.timestamp").isISO8601().withMessage("Timestamp must be valid ISO8601 format"),
                 validateRequest,
         ],
         groupController.updatePoints,

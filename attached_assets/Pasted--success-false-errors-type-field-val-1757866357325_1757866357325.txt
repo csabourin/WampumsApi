@@ -1,0 +1,602 @@
+{
+    "success": false,
+    "errors": [
+        {
+            "type": "field",
+            "value": {
+                "host": "wampums-api.replit.app",
+                "user-agent": "PostmanRuntime/7.46.0",
+                "content-length": "89",
+                "accept": "*/*",
+                "accept-encoding": "gzip, deflate, br",
+                "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMGRmM2JmMjctNGIwMC00YzY5LWI4ZmUtMDRhZDQ4ZDFjNjMxIiwidXNlcl9yb2xlIjoiYWRtaW4iLCJvcmdhbml6YXRpb25JZCI6MSwiZnVsbF9uYW1lIjoiQWRtaW4gQ3NhYm91cmluIiwiaWF0IjoxNzU3ODYwNjQ4LCJleHAiOjE3NTgxMTk4NDh9.jQo7nBjRU56nSoVbVFECgXg5QFwgkAhf0uN_9_a-Yi0",
+                "content-type": "application/json",
+                "postman-token": "b7c4a3f8-b82d-416e-a570-7dea184ae9f4",
+                "server-timing": "depproxy;dur=1757866247783, pid1req;dur=1757866247870",
+                "traceparent": "00-6fd238fb37b580e3234a30a2ec8fa242-03932d87faaf50ae-01",
+                "via": "1.1 google",
+                "x-cloud-trace-context": "6fd238fb37b580e3234a30a2ec8fa242/257599665739878574;o=1",
+                "x-forwarded-for": "24.202.50.168, 34.117.33.233, 35.191.73.230,34.30.242.206",
+                "x-forwarded-host": "wampums-api.replit.app",
+                "x-forwarded-proto": "https",
+                "x-organization-id": "1",
+                "x-replit-user-bio": "",
+                "x-replit-user-id": "",
+                "x-replit-user-name": "",
+                "x-replit-user-profile-image": "",
+                "x-replit-user-roles": "",
+                "x-replit-user-teams": "",
+                "x-replit-user-url": ""
+            },
+            "msg": "Request body must be an array",
+            "path": "",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "value": {},
+            "msg": "Request body must be an array",
+            "path": "",
+            "location": "params"
+        },
+        {
+            "type": "field",
+            "value": {},
+            "msg": "Request body must be an array",
+            "path": "",
+            "location": "query"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "host.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "user-agent.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "content-length.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "accept.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "accept-encoding.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "authorization.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "content-type.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "postman-token.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "server-timing.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "traceparent.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "via.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-cloud-trace-context.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-forwarded-for.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-forwarded-host.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-forwarded-proto.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-organization-id.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-bio.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-id.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-name.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-profile-image.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-roles.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-teams.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Type must be 'group' or 'individual'",
+            "path": "x-replit-user-url.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "host.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "user-agent.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "content-length.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "accept.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "accept-encoding.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "authorization.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "content-type.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "postman-token.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "server-timing.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "traceparent.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "via.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-cloud-trace-context.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-forwarded-for.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-forwarded-host.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-forwarded-proto.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-organization-id.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-bio.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-id.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-name.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-profile-image.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-roles.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-teams.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "ID is required",
+            "path": "x-replit-user-url.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "host.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "user-agent.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "content-length.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "accept.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "accept-encoding.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "authorization.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "content-type.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "postman-token.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "server-timing.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "traceparent.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "via.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-cloud-trace-context.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-forwarded-for.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-forwarded-host.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-forwarded-proto.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-organization-id.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-bio.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-id.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-name.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-profile-image.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-roles.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-teams.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Points must be numeric",
+            "path": "x-replit-user-url.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "host.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "user-agent.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "content-length.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "accept.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "accept-encoding.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "authorization.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "content-type.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "postman-token.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "server-timing.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "traceparent.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "via.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-cloud-trace-context.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-forwarded-for.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-forwarded-host.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-forwarded-proto.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-organization-id.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-bio.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-id.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-name.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-profile-image.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-roles.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-teams.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Timestamp must be valid ISO8601 format",
+            "path": "x-replit-user-url.timestamp",
+            "location": "headers"
+        }
+    ]
+}
