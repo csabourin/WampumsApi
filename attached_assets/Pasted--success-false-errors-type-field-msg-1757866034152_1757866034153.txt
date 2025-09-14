@@ -1,0 +1,653 @@
+{
+    "success": false,
+    "errors": [
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "type.type",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "id.type",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "points.type",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "timestamp.type",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "host.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "user-agent.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-length.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept-encoding.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "authorization.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-type.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "postman-token.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "server-timing.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "traceparent.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "via.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-cloud-trace-context.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-for.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-host.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-proto.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-organization-id.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-bio.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-id.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-name.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-profile-image.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-roles.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-teams.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-url.type",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "type.id",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "id.id",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "points.id",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "timestamp.id",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "host.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "user-agent.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-length.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept-encoding.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "authorization.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-type.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "postman-token.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "server-timing.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "traceparent.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "via.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-cloud-trace-context.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-for.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-host.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-proto.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-organization-id.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-bio.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-id.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-name.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-profile-image.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-roles.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-teams.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-url.id",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "type.points",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "id.points",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "points.points",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "timestamp.points",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "host.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "user-agent.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-length.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept-encoding.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "authorization.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-type.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "postman-token.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "server-timing.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "traceparent.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "via.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-cloud-trace-context.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-for.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-host.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-proto.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-organization-id.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-bio.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-id.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-name.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-profile-image.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-roles.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-teams.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-url.points",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "type.timestamp",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "id.timestamp",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "points.timestamp",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "timestamp.timestamp",
+            "location": "body"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "host.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "user-agent.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-length.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "accept-encoding.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "authorization.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "content-type.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "postman-token.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "server-timing.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "traceparent.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "via.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-cloud-trace-context.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-for.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-host.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-forwarded-proto.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-organization-id.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-bio.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-id.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-name.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-profile-image.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-roles.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-teams.timestamp",
+            "location": "headers"
+        },
+        {
+            "type": "field",
+            "msg": "Invalid value",
+            "path": "x-replit-user-url.timestamp",
+            "location": "headers"
+        }
+    ]
+}
