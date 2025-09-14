@@ -65,8 +65,16 @@ exports.updateAttendance = async (req, res) => {
 			[participant_id, date, status, organizationId]
 		);
 
+		// Get the updated attendance record to return as confirmation
+		const updatedRecord = await client.query(
+			`SELECT participant_id, date, status
+			 FROM attendance
+			 WHERE participant_id = $1 AND date = $2 AND organization_id = $3`,
+			[participant_id, date, organizationId]
+		);
+
 		await client.query("COMMIT");
-		return jsonResponse(res, true, null, "Attendance updated successfully");
+		return jsonResponse(res, true, updatedRecord.rows[0], "Attendance updated successfully");
 	} catch (error) {
 		await client.query("ROLLBACK");
 		logger.error(`Error updating attendance: ${error.message}`);
